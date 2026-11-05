@@ -1,0 +1,7 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://cmat_floor_001"]
+
+[resource]
+albedo_color = Color(0.18, 0.19, 0.22, 1)
+roughness = 0.85
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+uv1_triplanar = true

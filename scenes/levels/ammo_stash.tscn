@@ -1,0 +1,71 @@
+[gd_scene load_steps=5 format=3 uid="uid://cammo_stash_001"]
+
+[ext_resource type="Material" uid="uid://cmat_accent_001" path="res://assets/placeholder/mat_accent.tres" id="1_mat"]
+[ext_resource type="Script" path="res://scripts/components/interactable_component.gd" id="2_interact"]
+
+[sub_resource type="GDScript" id="GDScript_stash"]
+script/source = "extends StaticBody3D
+
+@onready var interactable: InteractableComponent = $InteractableComponent
+var is_looted: bool = false
+const AMMO_AMOUNT: int = 24
+
+func get_prompt() -> String:
+	if is_looted:
+		return \"\"
+	var player = get_tree().get_first_node_in_group(\"player\")
+	if player:
+		var weapon = player.find_child(\"Pistol\", true, false)
+		if weapon and not weapon.can_add_reserve_ammo():
+			return \"Ammo Full\"
+	var im = get_node_or_null(\"/root/InputManager\")
+	var key = im.get_action_key_label(\"interact\") if im else \"E\"
+	return \"[%s] Take Ammunition (+%d)\" % [key, AMMO_AMOUNT]
+
+func interact(interactor: Node) -> void:
+	if is_looted:
+		return
+	var weapon = interactor.find_child(\"Pistol\", true, false)
+	if weapon:
+		if not weapon.can_add_reserve_ammo():
+			return
+		var added = weapon.add_reserve_ammo(AMMO_AMOUNT)
+		if added > 0:
+			is_looted = true
+			var am = get_node_or_null(\"/root/AudioManager\")
+			if am and am.has_method(\"play_pickup\"):
+				am.play_pickup()
+			if interactable:
+				interactable.is_interactable = false
+
+func reset_pickup() -> void:
+	is_looted = false
+	visible = true
+	collision_layer = 8
+	if interactable:
+		interactable.is_interactable = true
+"
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_box"]
+size = Vector3(0.8, 0.5, 0.6)
+
+[sub_resource type="BoxMesh" id="BoxMesh_box"]
+material = ExtResource("1_mat")
+size = Vector3(0.8, 0.5, 0.6)
+
+[node name="AmmoStash" type="StaticBody3D"]
+collision_layer = 8
+collision_mask = 0
+script = SubResource("GDScript_stash")
+
+[node name="InteractableComponent" type="Node" parent="."]
+script = ExtResource("2_interact")
+prompt_text = "[E] Take Ammunition (+24)"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+shape = SubResource("BoxShape3D_box")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
+mesh = SubResource("BoxMesh_box")

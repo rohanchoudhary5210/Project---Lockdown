@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="CameraFeedbackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/camera_feedback_data.gd" id="1_data"]
+
+[resource]
+script = ExtResource("1_data")
+trauma_decay_rate = 1.6
+max_pitch_deg = 2.5
+max_yaw_deg = 2.5
+max_roll_deg = 3.0
+max_offset_x = 0.04
+max_offset_y = 0.04
+shake_frequency = 24.0
+fov_recovery_speed = 10.0
+fire_trauma = 0.16
+fire_fov_kick = 1.4
+melee_hit_trauma = 0.35
+melee_hit_fov_kick = 3.0
+damage_taken_trauma = 0.55
+damage_taken_fov_kick = -4.0

@@ -1,0 +1,6 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://cmat_enemy_ranged_001"]
+
+[resource]
+albedo_color = Color(0.2, 0.24, 0.32, 1)
+roughness = 0.8
+metallic = 0.1

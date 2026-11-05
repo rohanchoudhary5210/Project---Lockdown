@@ -1,0 +1,11 @@
+[gd_scene load_steps=4 format=3 uid="uid://cmelee_weapon_scene_001"]
+
+[ext_resource type="Script" path="res://scripts/components/melee_controller.gd" id="1_controller"]
+[ext_resource type="Resource" path="res://data/default_melee_data.tres" id="2_data"]
+[ext_resource type="PackedScene" uid="uid://cmelee_visual_001" path="res://scenes/weapons/melee_visual.tscn" id="3_visual"]
+
+[node name="MeleeWeapon" type="Node3D"]
+script = ExtResource("1_controller")
+melee_data = ExtResource("2_data")
+
+[node name="Visual" parent="." instance=ExtResource("3_visual")]
