@@ -14,9 +14,13 @@ var fov: float = 78.0
 var crouch_toggle: bool = false
 var touch_recoil: float = 0.45
 var aim_assist: String = "Off" # "Off", "Low", "High"
-var touch_sens_h: float = 0.0020
-var touch_sens_v: float = 0.0016
-var touch_smoothing: float = 0.5
+const DEFAULT_TOUCH_SENS_H: float = 0.0025
+const DEFAULT_TOUCH_SENS_V: float = 0.0020
+const DEFAULT_TOUCH_SMOOTHING: float = 0.0 # raw: the camera follows the finger with no trailing
+const TOUCH_TUNING_VERSION: int = 2 # bump to re-apply the touch defaults over older saved settings
+var touch_sens_h: float = DEFAULT_TOUCH_SENS_H
+var touch_sens_v: float = DEFAULT_TOUCH_SENS_V
+var touch_smoothing: float = DEFAULT_TOUCH_SMOOTHING
 var gyro_mode: int = 0 # 0 = Off, 1 = Always, 2 = While firing
 var gyro_sensitivity: float = 1.0
 var master_volume: float = 1.0
@@ -47,6 +51,7 @@ func _ready() -> void:
 	apply_all_settings()
 
 func load_settings() -> void:
+	_config.clear() # load() merges into existing keys instead of replacing them
 	var err = _config.load(SETTINGS_FILE)
 	if err == OK:
 		mouse_sensitivity = _config.get_value("controls", "mouse_sensitivity", 0.002)
@@ -56,9 +61,15 @@ func load_settings() -> void:
 		touch_controls_mode = _config.get_value("controls", "touch_controls_mode", 0)
 		touch_recoil = _config.get_value("controls", "touch_recoil", 0.45)
 		aim_assist = _config.get_value("controls", "aim_assist", _get_default_aim_assist())
-		touch_sens_h = _config.get_value("controls", "touch_sens_h", 0.0020)
-		touch_sens_v = _config.get_value("controls", "touch_sens_v", 0.0016)
-		touch_smoothing = _config.get_value("controls", "touch_smoothing", 0.5)
+		touch_sens_h = _config.get_value("controls", "touch_sens_h", DEFAULT_TOUCH_SENS_H)
+		touch_sens_v = _config.get_value("controls", "touch_sens_v", DEFAULT_TOUCH_SENS_V)
+		touch_smoothing = _config.get_value("controls", "touch_smoothing", DEFAULT_TOUCH_SMOOTHING)
+		if int(_config.get_value("controls", "touch_tuning", 1)) < TOUCH_TUNING_VERSION:
+			# Older saves kept the heavy defaults (smoothing 0.5, lower sensitivity); replace them once.
+			touch_sens_h = DEFAULT_TOUCH_SENS_H
+			touch_sens_v = DEFAULT_TOUCH_SENS_V
+			touch_smoothing = DEFAULT_TOUCH_SMOOTHING
+			save_settings()
 		gyro_mode = _config.get_value("controls", "gyro_mode", 0)
 		gyro_sensitivity = _config.get_value("controls", "gyro_sensitivity", 1.0)
 		
@@ -80,6 +91,7 @@ func save_settings() -> void:
 	_config.set_value("controls", "touch_sens_h", touch_sens_h)
 	_config.set_value("controls", "touch_sens_v", touch_sens_v)
 	_config.set_value("controls", "touch_smoothing", touch_smoothing)
+	_config.set_value("controls", "touch_tuning", TOUCH_TUNING_VERSION)
 	_config.set_value("controls", "gyro_mode", gyro_mode)
 	_config.set_value("controls", "gyro_sensitivity", gyro_sensitivity)
 	

@@ -375,16 +375,16 @@ func test_joystick_curve_and_acceleration() -> bool:
 	root.add_child(player)
 	await process_frame
 	
-	# Joystick deadzone is 12.0, radius is 75.0
-	# 1. Deflection at 25% past deadzone: dist = 12 + (63 * 0.25) = 27.75
+	# Joystick deadzone is 8.0, radius 75.0, full speed at 85% of the radius (63.75), linear between
+	# 1. Gentle push: dist = 8 + (63.75 - 8) * 0.25 = 21.94 -> 25% speed
 	var center = tc._default_joystick_pos
-	var gentle_pos = center + Vector2(0.0, -27.75)
+	tc._joystick_center = center
+	var gentle_pos = center + Vector2(0.0, -21.94)
 	tc._update_joystick_drag(gentle_pos)
-	
+
 	var move_forward_strength = Input.get_action_strength("move_forward")
-	# pow(0.25, 1.35) ≈ 0.154 -> Gentle curved speed
-	if move_forward_strength >= 0.25 or move_forward_strength <= 0.08:
-		printerr("Gentle joystick deflection not properly curved! Got strength: %f (expected ~0.15)" % move_forward_strength)
+	if absf(move_forward_strength - 0.25) > 0.02:
+		printerr("Gentle joystick push should give ~25%% speed! Got strength: %f" % move_forward_strength)
 		tc.queue_free()
 		player.queue_free()
 		return false
@@ -405,6 +405,14 @@ func test_joystick_curve_and_acceleration() -> bool:
 	var full_strength = Input.get_action_strength("move_forward")
 	if absf(full_strength - 1.0) > 0.02:
 		printerr("Full joystick deflection did not reach 1.0! Got: ", full_strength)
+		tc.queue_free()
+		player.queue_free()
+		return false
+
+	# 3. A full push walks; it must not sprint (sprint is loud and only comes from the sprint lock)
+	if Input.is_action_pressed("sprint"):
+		printerr("Full joystick push started sprinting!")
+		tc._release_movement_actions()
 		tc.queue_free()
 		player.queue_free()
 		return false

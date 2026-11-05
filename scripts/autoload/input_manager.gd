@@ -16,9 +16,9 @@ var last_input_device: InputDevice = InputDevice.MOUSE_KEYBOARD
 
 var mouse_sensitivity: float = 0.002
 var controller_look_speed: float = 3.0
-var touch_sens_h: float = 0.0020
-var touch_sens_v: float = 0.0016
-var touch_smoothing: float = 0.5
+var touch_sens_h: float = 0.0025
+var touch_sens_v: float = 0.0020
+var touch_smoothing: float = 0.0
 var gyro_mode: int = 0 # 0 = Off, 1 = Always, 2 = While firing
 var gyro_sensitivity: float = 1.0
 var _mock_gyroscope: Vector3 = Vector3.ZERO

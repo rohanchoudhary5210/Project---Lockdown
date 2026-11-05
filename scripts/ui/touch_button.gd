@@ -108,6 +108,11 @@ func _gui_input(event: InputEvent) -> void:
 			accept_event()
 		return
 	
+	# Phones also send a fake mouse click for the first finger; the touch above already handled it,
+	# and handling both pressed toggle buttons twice per tap (on, then straight back off).
+	if event is InputEventMouse and event.device == InputEvent.DEVICE_ID_EMULATION:
+		return
+
 	# Mouse input (for desktop / debug testing)
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed and not is_pressed:

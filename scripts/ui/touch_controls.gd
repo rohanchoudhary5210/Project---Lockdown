@@ -9,8 +9,7 @@ extends Control
 ## In-game HUD Customization Mode (drag reposition, 0.6x-1.5x resize, global opacity, per-aspect ratio persistence).
 
 const JOYSTICK_RADIUS: float = 75.0
-const JOYSTICK_DEADZONE: float = 12.0
-const SPRINT_THRESHOLD_RATIO: float = 0.9
+const JOYSTICK_DEADZONE: float = 8.0
 
 const LOOK_DEADZONE_SPEED: float = 10.0 # px/s; below this the finger is resting (tremor), not aiming
 const LOOK_CURVE_EXPONENT: float = 1.3
@@ -184,7 +183,8 @@ func _process(delta: float) -> void:
 	var speed: float = _look_speed_est
 	var compensated_frame_delta: Vector2 = Vector2.ZERO
 	if speed >= LOOK_DEADZONE_SPEED:
-		var gain: float = clampf(pow(speed / LOOK_CURVE_REF_SPEED, LOOK_CURVE_EXPONENT - 1.0), 0.5, 3.0)
+		# Never slower than 1:1, so slow precise aiming isn't damped; only fast swipes speed up.
+		var gain: float = clampf(pow(speed / LOOK_CURVE_REF_SPEED, LOOK_CURVE_EXPONENT - 1.0), 1.0, 3.0)
 		compensated_frame_delta = raw_frame_delta * gain
 	
 	# Frame-rate independent exponential smoothing (~25ms time constant)
@@ -194,7 +194,7 @@ func _process(delta: float) -> void:
 	var smoothed_frame_delta = _smoothed_look_rate * delta
 	
 	var sm = get_node_or_null("/root/SettingsManager")
-	var smoothing_factor: float = sm.touch_smoothing if sm else 0.5
+	var smoothing_factor: float = sm.touch_smoothing if sm else 0.0
 	var final_frame_delta = compensated_frame_delta.lerp(smoothed_frame_delta, smoothing_factor)
 	
 	if final_frame_delta != Vector2.ZERO:
@@ -230,8 +230,8 @@ func _handle_screen_touch(event: InputEventScreenTouch) -> void:
 		if _is_touch_on_any_button(event.position):
 			return
 		
-		# Left side: Joystick zone (bottom-left area: x <= 0.45, y >= 0.45)
-		if event.position.x <= vp_size.x * 0.45 and event.position.y >= vp_size.y * 0.45:
+		# Left half (outside buttons): joystick appears where the thumb lands
+		if event.position.x < half_x:
 			# If sprint locked, a tap inside joystick zone cancels it
 			if _sprint_locked:
 				_sprint_locked = false
@@ -271,7 +271,7 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 		if event.pressed:
 			if _is_touch_on_any_button(event.position):
 				return
-			if event.position.x <= vp_size.x * 0.45 and event.position.y >= vp_size.y * 0.45:
+			if event.position.x < half_x:
 				if _sprint_locked:
 					_sprint_locked = false
 					_release_movement_actions()
@@ -339,10 +339,10 @@ func _update_joystick_drag(pos: Vector2) -> void:
 		return
 	
 	if dist > JOYSTICK_DEADZONE:
-		var clamped_dist = minf(dist, JOYSTICK_RADIUS)
-		var t = clampf((clamped_dist - JOYSTICK_DEADZONE) / (JOYSTICK_RADIUS - JOYSTICK_DEADZONE), 0.0, 1.0)
-		# Small curve so slow walking is easy and precise
-		var speed_mult = pow(t, 1.35)
+		# Linear, reaching full speed at 85% of the radius so the thumb doesn't have to hit the rim.
+		var full_speed_dist: float = JOYSTICK_RADIUS * 0.85
+		var t = clampf((dist - JOYSTICK_DEADZONE) / (full_speed_dist - JOYSTICK_DEADZONE), 0.0, 1.0)
+		var speed_mult = t
 		var dir = delta_vec.normalized()
 		var norm = dir * speed_mult
 		
@@ -367,11 +367,9 @@ func _update_joystick_drag(pos: Vector2) -> void:
 			Input.action_release("move_forward")
 			Input.action_release("move_back")
 		
-		# Sprint: push joystick past 90% radius
-		if (dist / JOYSTICK_RADIUS) >= SPRINT_THRESHOLD_RATIO:
-			Input.action_press("sprint")
-		else:
-			Input.action_release("sprint")
+		# No auto-sprint from a full push: sprinting is loud (enemies hear it), so it only
+		# happens through the sprint lock above.
+		Input.action_release("sprint")
 	else:
 		_release_movement_actions()
 	
@@ -460,10 +458,6 @@ func _draw() -> void:
 	draw_circle(current_center, JOYSTICK_RADIUS, base_col)
 	draw_arc(current_center, JOYSTICK_RADIUS, 0, TAU, 32, outline_col, 2.0)
 	
-	# Sprint threshold ring (90% radius)
-	var sprint_ring_col = Color(1.0, 0.85, 0.2, 0.4 if _joystick_active else 0.2)
-	draw_arc(current_center, JOYSTICK_RADIUS * SPRINT_THRESHOLD_RATIO, 0, TAU, 32, sprint_ring_col, 1.5)
-	
 	# Sprint Lock Icon above joystick
 	var lock_center = Vector2(current_center.x, current_center.y - JOYSTICK_RADIUS * 1.45)
 	var lock_col = Color(1.0, 0.5, 0.1, 0.95) if _sprint_locked else Color(0.5, 0.8, 1.0, 0.5)
@@ -484,7 +478,7 @@ func _draw() -> void:
 	
 	# Edit Mode dashed zone indicator for joystick
 	if _is_edit_mode:
-		var zone_rect = Rect2(Vector2(20, get_viewport_rect().size.y * 0.45), Vector2(get_viewport_rect().size.x * 0.42, get_viewport_rect().size.y * 0.52))
+		var zone_rect = Rect2(Vector2(20, 20), Vector2(get_viewport_rect().size.x * 0.5 - 40, get_viewport_rect().size.y - 40))
 		draw_rect(zone_rect, Color(0.3, 0.7, 1.0, 0.15), true)
 		draw_rect(zone_rect, Color(0.3, 0.8, 1.0, 0.6), false, 2.0)
 		var zone_label = "JOYSTICK ZONE"

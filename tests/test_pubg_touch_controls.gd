@@ -184,17 +184,31 @@ func test_joystick_zone_and_following() -> bool:
 	
 	var vp_size = tc.get_viewport_rect().size
 	
-	# Touch outside joystick zone on left (e.g. top-left at x=200, y=200)
-	var touch_outside = InputEventScreenTouch.new()
-	touch_outside.index = 10
-	touch_outside.position = Vector2(200, 200)
-	touch_outside.pressed = true
-	tc._handle_screen_touch(touch_outside)
-	
+	# Touch on the right half must never start the joystick (that side is for looking)
+	var touch_right = InputEventScreenTouch.new()
+	touch_right.index = 9
+	touch_right.position = Vector2(vp_size.x * 0.6, vp_size.y * 0.5)
+	touch_right.pressed = true
+	tc._handle_screen_touch(touch_right)
 	if tc._joystick_active:
-		printerr("Joystick activated from touch outside bottom-left zone!")
+		printerr("Joystick activated from a touch on the right half!")
 		tc.queue_free()
 		return false
+	touch_right.pressed = false
+	tc._handle_screen_touch(touch_right)
+
+	# Anywhere on the left half (not on a button) starts the joystick, including high up (x=200, y=200)
+	var touch_high = InputEventScreenTouch.new()
+	touch_high.index = 10
+	touch_high.position = Vector2(200, 200)
+	touch_high.pressed = true
+	tc._handle_screen_touch(touch_high)
+	if not tc._joystick_active:
+		printerr("Joystick did not start from a touch high on the left half!")
+		tc.queue_free()
+		return false
+	touch_high.pressed = false
+	tc._handle_screen_touch(touch_high)
 	
 	# Touch inside bottom-left joystick zone (e.g. x=160, y=850)
 	var touch_inside = InputEventScreenTouch.new()
