@@ -12,8 +12,9 @@ const JOYSTICK_RADIUS: float = 75.0
 const JOYSTICK_DEADZONE: float = 12.0
 const SPRINT_THRESHOLD_RATIO: float = 0.9
 
-const LOOK_DEADZONE: float = 1.5
+const LOOK_DEADZONE_SPEED: float = 10.0 # px/s; below this the finger is resting (tremor), not aiming
 const LOOK_CURVE_EXPONENT: float = 1.3
+const LOOK_CURVE_REF_SPEED: float = 60.0 # px/s; matches the old per-event curve when one event arrives per 60 FPS frame
 const LOOK_TIME_CONSTANT: float = 0.025 # ~25ms time constant (low lag, buttery smooth)
 
 @onready var buttons_container: Control = %ButtonsContainer
@@ -50,6 +51,7 @@ var _is_mouse_joystick: bool = false
 var _is_mouse_look: bool = false
 var _smoothed_look_rate: Vector2 = Vector2.ZERO
 var _accumulated_drag: Vector2 = Vector2.ZERO
+var _look_speed_est: float = 0.0
 
 # Edit Mode State
 var _is_edit_mode: bool = false
@@ -168,16 +170,22 @@ func _process(delta: float) -> void:
 	var is_look_active = (_look_touch_index != -1) or _is_mouse_look
 	if not is_look_active and _accumulated_drag == Vector2.ZERO:
 		_smoothed_look_rate = Vector2.ZERO
+		_look_speed_est = 0.0
 		return
 	
 	var raw_frame_delta = _accumulated_drag
 	_accumulated_drag = Vector2.ZERO
-	
-	# Frame-rate normalization so constant swipe speed yields constant camera turn rate at 30, 60, and 120 FPS
-	const REF_DELTA: float = 1.0 / 60.0
-	var dt_ratio: float = clampf(REF_DELTA / delta, 0.2, 5.0)
-	var framerate_compensation: float = pow(dt_ratio, LOOK_CURVE_EXPONENT - 1.0)
-	var compensated_frame_delta: Vector2 = raw_frame_delta * framerate_compensation
+
+	# Curve on the finger's speed over this frame, not on single touch events, so the result
+	# doesn't depend on the phone's touch rate or the frame rate.
+	# Speed is averaged over ~50ms because touch events don't arrive evenly every frame.
+	var speed_alpha: float = 1.0 - exp(-delta / 0.05)
+	_look_speed_est = lerpf(_look_speed_est, raw_frame_delta.length() / delta, speed_alpha)
+	var speed: float = _look_speed_est
+	var compensated_frame_delta: Vector2 = Vector2.ZERO
+	if speed >= LOOK_DEADZONE_SPEED:
+		var gain: float = clampf(pow(speed / LOOK_CURVE_REF_SPEED, LOOK_CURVE_EXPONENT - 1.0), 0.5, 3.0)
+		compensated_frame_delta = raw_frame_delta * gain
 	
 	# Frame-rate independent exponential smoothing (~25ms time constant)
 	var target_rate = compensated_frame_delta / delta
@@ -297,16 +305,8 @@ func _on_fire_dragged(relative: Vector2, _index: int) -> void:
 		_process_look_drag_event(relative)
 
 func _process_look_drag_event(raw_relative: Vector2) -> void:
-	var raw_len: float = raw_relative.length()
-	# Tiny deadzone: ignore jitter under ~1.5px per event
-	if raw_len < LOOK_DEADZONE:
-		return
-	
-	# Response curve: small slow drags stay precise, fast swipes turn faster (curve exponent ~1.3)
-	var curved_mag: float = pow(raw_len, LOOK_CURVE_EXPONENT)
-	var curved_delta: Vector2 = (raw_relative / raw_len) * curved_mag
-	# Consume and accumulate all drag events of the frame
-	_accumulated_drag += curved_delta
+	# Keep every event, however small; deadzone and curve are applied per frame in _process
+	_accumulated_drag += raw_relative
 
 func _update_joystick_drag(pos: Vector2) -> void:
 	var delta_vec: Vector2 = pos - _joystick_center

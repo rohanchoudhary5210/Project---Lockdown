@@ -66,7 +66,7 @@ func _run_all_tests() -> void:
 		failed += 1
 		print("FAILED: Test 7")
 	
-	print("\n--- Test 8: Touch Look Deadzone (< 1.5px) & Response Curve (exp ~1.3) ---")
+	print("\n--- Test 8: Touch Look: no dropped events, same turn for any event size, speed curve, tremor deadzone ---")
 	if await test_touch_deadzone_and_curve():
 		passed += 1
 		print("PASSED: Test 8")
@@ -501,30 +501,58 @@ func test_touch_deadzone_and_curve() -> bool:
 	
 	tc._look_touch_index = 1
 	
-	# 1. Jitter below 1.5px must be ignored
-	tc._accumulated_drag = Vector2.ZERO
-	tc._process_look_drag_event(Vector2(1.0, 0.5)) # Length = 1.118 < 1.5
-	if tc._accumulated_drag != Vector2.ZERO:
-		printerr("Sub-1.5px jitter was not filtered out! Got: ", tc._accumulated_drag)
-		tc.queue_free()
+	var sm = root.get_node_or_null("SettingsManager")
+	var old_smoothing = sm.touch_smoothing if sm else 0.0
+	if sm: sm.touch_smoothing = 0.0
+	var im = root.get_node("InputManager")
+
+	# Turns a steady swipe of `px_per_frame` for 30 frames at 60 FPS, split into `events` per frame.
+	var swipe = func(px_per_frame: float, events: int) -> float:
+		tc.visible = true # touch controls hide themselves on non-touch (headless) devices
+		tc._look_touch_index = 1
+		tc._look_speed_est = 0.0
+		tc._accumulated_drag = Vector2.ZERO
+		tc._smoothed_look_rate = Vector2.ZERO
+		im._touch_delta = Vector2.ZERO
+		var total := 0.0
+		for i in 30:
+			for e in events:
+				tc._process_look_drag_event(Vector2(px_per_frame / events, 0.0))
+			tc._process(1.0 / 60.0)
+			total += im._touch_delta.x
+			im._touch_delta = Vector2.ZERO
+		return total
+
+	# 1. Small events are never thrown away: a slow precise swipe made of 1px events must turn the camera.
+	var slow_fine = swipe.call(2.0, 2)
+	if slow_fine <= 0.0:
+		printerr("Slow swipe of 1px events produced no camera movement!")
+		tc.queue_free(); if sm: sm.touch_smoothing = old_smoothing
 		return false
-	
-	# 2. Movement above 1.5px: check response curve with exponent 1.3
-	tc._accumulated_drag = Vector2.ZERO
-	tc._process_look_drag_event(Vector2(2.0, 0.0))
-	var small_drag = tc._accumulated_drag.length() # pow(2.0, 1.3) ≈ 2.462
-	
-	tc._accumulated_drag = Vector2.ZERO
-	tc._process_look_drag_event(Vector2(20.0, 0.0))
-	var fast_drag = tc._accumulated_drag.length() # pow(20.0, 1.3) ≈ 49.12
-	
-	var ratio = fast_drag / small_drag # pow(10, 1.3) ≈ 19.95
-	var expected_ratio = pow(10.0, 1.3)
-	if absf(ratio - expected_ratio) > 0.05:
-		printerr("Response curve ratio mismatch! Got %f, expected %f" % [ratio, expected_ratio])
-		tc.queue_free()
+
+	# 2. Same swipe speed gives the same turn no matter how the phone splits it into events.
+	var slow_coarse = swipe.call(2.0, 1)
+	if absf(slow_fine - slow_coarse) > slow_coarse * 0.02:
+		printerr("Turn depends on touch event size! 1px events: %f, 2px events: %f" % [slow_fine, slow_coarse])
+		tc.queue_free(); if sm: sm.touch_smoothing = old_smoothing
 		return false
-	
+
+	# 3. Response curve: 10x faster swipe turns more than 10x (fast swipes accelerate).
+	var fast = swipe.call(20.0, 4)
+	var ratio = fast / slow_coarse
+	if ratio <= 10.5:
+		printerr("Response curve not applied! fast/slow ratio %f (expected > 10.5)" % ratio)
+		tc.queue_free(); if sm: sm.touch_smoothing = old_smoothing
+		return false
+
+	# 4. A resting finger (tremor well under the deadzone speed) does not move the camera.
+	var tremor = swipe.call(0.1, 1) # 6 px/s
+	if absf(tremor) > 0.0001:
+		printerr("Resting-finger tremor moved the camera: ", tremor)
+		tc.queue_free(); if sm: sm.touch_smoothing = old_smoothing
+		return false
+
+	if sm: sm.touch_smoothing = old_smoothing
 	tc.queue_free()
 	return true
 

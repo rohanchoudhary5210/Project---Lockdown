@@ -343,9 +343,8 @@ func test_touch_drag_consumption() -> bool:
 	drag3.relative = Vector2(5.0, 0.0)
 	tc._handle_screen_drag(drag3)
 	
-	# All 3 drag events must be consumed (summed up, not just the last one)
-	# Each event above 1.5px: pow(4, 1.3) ≈ 6.06, pow(6, 1.3) ≈ 10.27, pow(5, 1.3) ≈ 8.10 -> Total ≈ 24.4
-	if tc._accumulated_drag.x <= 15.0:
+	# All 3 drag events must be consumed (summed raw: 4 + 6 + 5 = 15, not just the last one)
+	if not is_equal_approx(tc._accumulated_drag.x, 15.0):
 		printerr("Not all drag events were consumed! Got accumulated: ", tc._accumulated_drag)
 		tc.queue_free()
 		return false
