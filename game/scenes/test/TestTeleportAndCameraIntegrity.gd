@@ -20,6 +20,7 @@ func _init() -> void:
 	call_deferred("_run_tests")
 
 func _run_tests() -> void:
+	await TestServices.start(self)
 	print("\n=== STARTING TELEPORT & CAMERA INTEGRITY TEST SUITE ===\n")
 	
 	await _test_1_respawn_teleport_camera()
@@ -63,7 +64,7 @@ func _test_1_respawn_teleport_camera() -> void:
 	world.add_child(player)
 	await process_frame
 	
-	var cm = root.get_node_or_null("CheckpointManager")
+	var cm = TestServices.get_service(self, &"checkpoint")
 	if not cm:
 		printerr("CheckpointManager autoload not found!")
 		_fail()
@@ -454,7 +455,7 @@ func _test_7_weapon_and_melee_origins() -> void:
 # ------------------------------------------------------------------------------
 func _test_8_death_slow_motion() -> void:
 	print("--- Test 8: Death Slow-Motion Sequence ---")
-	var cm = root.get_node_or_null("CheckpointManager")
+	var cm = TestServices.get_service(self, &"checkpoint")
 	if not cm:
 		printerr("CheckpointManager missing!")
 		_fail()
@@ -473,7 +474,7 @@ func _test_8_death_slow_motion() -> void:
 		return
 	
 	# Reset death screen flag
-	var im = root.get_node_or_null("InputManager")
+	var im = TestServices.get_service(self, &"input")
 	if im:
 		im.is_death_screen_active = false
 	
@@ -504,7 +505,7 @@ func _test_9_keyboard_diagonal_speed() -> void:
 	player.teleport(Vector3(0.0, 0.5, 0.0), 0.0, 0.0)
 	await process_frame
 	
-	var im = root.get_node_or_null("InputManager")
+	var im = TestServices.get_service(self, &"input")
 	if im:
 		im.mouse_captured = true
 	
@@ -559,7 +560,7 @@ func _test_9_keyboard_diagonal_speed() -> void:
 # ------------------------------------------------------------------------------
 func _test_10_f5_perf_label_consistency() -> void:
 	print("--- Test 10: F5 Performance Label Consistency ---")
-	var dt = root.get_node_or_null("DebugTools")
+	var dt = TestServices.get_service(self, &"debug")
 	if not dt:
 		printerr("DebugTools autoload not found!")
 		_fail()
@@ -630,7 +631,7 @@ func _test_11_mouse_look_90_deg_camera_turn() -> void:
 		world.queue_free()
 		return
 	
-	var im = root.get_node_or_null("InputManager")
+	var im = TestServices.get_service(self, &"input")
 	if not im:
 		printerr("InputManager missing!")
 		_fail()
@@ -696,7 +697,7 @@ func _test_12_touch_swipe_90_deg_camera_turn() -> void:
 	await process_frame
 	
 	var cam: Camera3D = player.camera
-	var im = root.get_node_or_null("InputManager")
+	var im = TestServices.get_service(self, &"input")
 	im.mouse_captured = true
 	im.is_gameplay_paused = false
 	im.touch_sens_h = 0.003
@@ -758,7 +759,7 @@ func _test_13_aim_assist_camera_rotation() -> void:
 	world.add_child(enemy)
 	await process_frame
 	
-	var im = root.get_node_or_null("InputManager")
+	var im = TestServices.get_service(self, &"input")
 	im.mouse_captured = true
 	im.is_gameplay_paused = false
 	im.last_input_device = im.InputDevice.TOUCH

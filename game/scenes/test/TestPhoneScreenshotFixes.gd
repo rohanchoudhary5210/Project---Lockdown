@@ -5,6 +5,7 @@ func _init() -> void:
 	call_deferred("_run_all_tests")
 
 func _run_all_tests() -> void:
+	await TestServices.start(self)
 	var passed = 0
 	var failed = 0
 	
@@ -193,7 +194,7 @@ func test_gun_ambient_lighting() -> bool:
 		return false
 	
 	# Test material quality switching (Low vs High) does not overwrite gunmetal
-	var sm = root.get_node_or_null("SettingsManager")
+	var sm = TestServices.get_service(self, &"settings")
 	if sm:
 		sm.set_setting("graphics_quality", "Low")
 		var pistol_mesh = player.find_child("Receiver", true, false) as MeshInstance3D

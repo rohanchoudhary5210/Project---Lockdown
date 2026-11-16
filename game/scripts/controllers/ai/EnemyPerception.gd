@@ -21,6 +21,12 @@ var last_heard_noise_radius: float = 0.0
 var last_heard_noise_blocked: bool = false
 var last_heard_timer: float = 0.0
 
+## Services come from GameService (see GameService._inject_into_new_nodes); null when run without it.
+var _noise_bus: NoiseBus
+
+func inject_services(registry: Node) -> void:
+	_noise_bus = registry.get_service(&"noise") as NoiseBus
+
 func _ready() -> void:
 	if not enemy_data:
 		enemy_data = preload("res://game/assets/data/ranged_enemy_data.tres")
@@ -28,7 +34,7 @@ func _ready() -> void:
 	call_deferred("_connect_noise_bus")
 
 func _connect_noise_bus() -> void:
-	var nb = get_node_or_null("/root/NoiseBus")
+	var nb = _noise_bus
 	if nb and nb.has_signal("noise_emitted"):
 		nb.noise_emitted.connect(_on_noise_emitted)
 

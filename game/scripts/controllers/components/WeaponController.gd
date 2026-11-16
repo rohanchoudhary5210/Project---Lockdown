@@ -37,6 +37,17 @@ var _camera_pivot: Node3D = null
 var _camera_feedback: CameraFeedbackComponent = null
 var _time_manager: Node = null
 
+## Services come from GameService (see GameService._inject_into_new_nodes); null when run without it.
+var _input_manager: InputManager
+var _noise_bus: NoiseBus
+var _settings: SettingsManager
+
+func inject_services(registry: Node) -> void:
+	_input_manager = registry.get_service(&"input") as InputManager
+	_noise_bus = registry.get_service(&"noise") as NoiseBus
+	_settings = registry.get_service(&"settings") as SettingsManager
+	_time_manager = registry.get_service(&"time") as TimeManager
+
 func _ready() -> void:
 	if not weapon_data:
 		weapon_data = preload("res://game/assets/data/pistol_data.tres")
@@ -71,8 +82,6 @@ func _resolve_external_references() -> void:
 			_camera_feedback = _camera.get_node("CameraFeedbackComponent")
 		curr = curr.get_parent()
 	
-	if has_node("/root/TimeManager"):
-		_time_manager = get_node("/root/TimeManager")
 
 func _process(delta: float) -> void:
 	_fire_timer = max(_fire_timer - delta, 0.0)
@@ -87,7 +96,7 @@ func _is_player_dead() -> bool:
 func _handle_input() -> void:
 	if _is_player_dead():
 		return
-	var im = get_node_or_null("/root/InputManager")
+	var im = _input_manager
 	if im and (not im.mouse_captured or im.just_recaptured):
 		return
 	
@@ -118,7 +127,7 @@ func try_fire() -> bool:
 	_fire_timer = weapon_data.fire_interval
 	ammo_changed.emit(current_ammo, reserve_ammo)
 	fired.emit(weapon_data.gunshot_noise_radius)
-	var nb = get_node_or_null("/root/NoiseBus")
+	var nb = _noise_bus
 	if nb:
 		nb.emit_noise(global_position, weapon_data.gunshot_noise_radius, _get_player_ancestor(), "gunshot")
 	
@@ -131,14 +140,14 @@ func try_fire() -> bool:
 		_camera_feedback.apply_fire_feedback()
 	
 	# Determine if last input came from touch
-	var im = get_node_or_null("/root/InputManager")
+	var im = _input_manager
 	var is_touch: bool = im.is_last_input_touch() if (im and im.has_method("is_last_input_touch")) else false
 	
 	# Recoil multiplier: 1.0 for mouse & gamepad, scaled for touch
 	var recoil_mult: float = 1.0
 	if is_touch:
 		recoil_mult = weapon_data.recoil_multiplier_touch
-		var sm = get_node_or_null("/root/SettingsManager")
+		var sm = _settings
 		if sm and "touch_recoil" in sm:
 			recoil_mult = sm.touch_recoil
 	

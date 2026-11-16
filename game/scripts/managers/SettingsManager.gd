@@ -1,11 +1,14 @@
+class_name SettingsManager
 extends Node
 
 ## Project: Lockdown - Settings Manager (Milestone 9)
-## Manages loading, saving, and immediate application of player configuration to user://settings.cfg.
+## Manages loading, saving, and immediate application of player configuration.
+## Stored through SaveManager (custom bucket, key "lockdown_settings"); user://settings.cfg is only read once to migrate old installs.
 
 signal settings_changed(key: String, value: Variant)
 
-const SETTINGS_FILE: String = "user://settings.cfg"
+const SETTINGS_FILE: String = "user://settings.cfg" # pre-template location, migration only
+const SAVE_KEY: String = "lockdown_settings"
 
 var mouse_sensitivity: float = 0.002
 var look_speed: float = 3.0
@@ -31,6 +34,18 @@ var graphics_quality: String = "High"
 
 var _config: ConfigFile = ConfigFile.new()
 
+## Services come from GameService (see GameService._inject_into_new_nodes); null when run without it.
+var _debug_tools: DebugTools
+var _input_manager: InputManager
+var _save: SaveManager
+var _haptics: HapticsManager
+
+func inject_services(registry: Node) -> void:
+	_save = registry.get_service(&"save") as SaveManager
+	_haptics = registry.get_service(&"haptics") as HapticsManager
+	_debug_tools = registry.get_service(&"debug") as DebugTools
+	_input_manager = registry.get_service(&"input") as InputManager
+
 func _get_default_graphics() -> String:
 	if OS.get_name() == "Android" or OS.has_feature("android"):
 		return "Low"
@@ -39,7 +54,7 @@ func _get_default_graphics() -> String:
 func _get_default_aim_assist() -> String:
 	if should_show_touch_controls():
 		return "High"
-	var im = get_node_or_null("/root/InputManager")
+	var im = _input_manager
 	if im and "last_input_device" in im and im.last_input_device == im.InputDevice.GAMEPAD:
 		return "Low"
 	return "Off"
@@ -49,11 +64,16 @@ func _ready() -> void:
 	aim_assist = _get_default_aim_assist()
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	load_settings()
+	if _haptics:
+		_haptics.set_enabled(haptics)
 	apply_all_settings()
 
 func load_settings() -> void:
 	_config.clear() # load() merges into existing keys instead of replacing them
-	var err = _config.load(SETTINGS_FILE)
+	var stored: String = _stored_settings_text()
+	var err = _config.parse(stored) if stored != "" else _config.load(SETTINGS_FILE)
+	if err == OK and stored == "":
+		call_deferred("save_settings") # migrated from the old settings.cfg: store it in the save data once
 	if err == OK:
 		mouse_sensitivity = _config.get_value("controls", "mouse_sensitivity", 0.002)
 		look_speed = _config.get_value("controls", "look_speed", 3.0)
@@ -102,7 +122,21 @@ func save_settings() -> void:
 	_config.set_value("display", "graphics_quality", graphics_quality)
 	_config.set_value("audio", "master_volume", master_volume)
 	_config.set_value("debug", "show_ai_debug", show_ai_debug)
-	_config.save(SETTINGS_FILE)
+	if _haptics:
+		_haptics.set_enabled(haptics)
+	if _save == null or _save.custom == null:
+		_config.save(SETTINGS_FILE) # no save backend (should not happen under GameService): keep the old file
+		return
+	var text: String = _config.encode_to_text()
+	_save.custom.mutate(func(d): d.data[SAVE_KEY] = text)
+	if _save.settings:
+		_save.settings.mutate(func(d): d.haptics_enabled = haptics)
+	_save.save_game()
+
+func _stored_settings_text() -> String:
+	if _save == null or _save.custom_data == null:
+		return ""
+	return str(_save.custom_data.data.get(SAVE_KEY, ""))
 
 func set_setting(key: String, value: Variant, save_to_disk: bool = true) -> void:
 	var old_val: Variant = null
@@ -150,7 +184,7 @@ func set_setting(key: String, value: Variant, save_to_disk: bool = true) -> void
 	settings_changed.emit(key, value)
 
 func apply_setting(key: String, _val: Variant, old_val: Variant = null) -> void:
-	var im = get_node_or_null("/root/InputManager")
+	var im = _input_manager
 	var players = get_tree().get_nodes_in_group("player") if get_tree() else []
 	
 	match key:
@@ -200,7 +234,7 @@ func apply_setting(key: String, _val: Variant, old_val: Variant = null) -> void:
 		"show_ai_debug":
 			if OS.is_debug_build():
 				EnemyDebugOverlay.global_overlay_visible = show_ai_debug
-				var dt = get_node_or_null("/root/DebugTools")
+				var dt = _debug_tools
 				if dt and dt.has_signal("ai_debug_overlay_toggled"):
 					dt.ai_debug_overlay_toggled.emit(show_ai_debug)
 		"aim_assist":
@@ -225,7 +259,7 @@ func apply_setting(key: String, _val: Variant, old_val: Variant = null) -> void:
 
 func apply_all_settings() -> void:
 	# 1. Update InputManager
-	var im = get_node_or_null("/root/InputManager")
+	var im = _input_manager
 	if im:
 		im.mouse_sensitivity = mouse_sensitivity
 		im.controller_look_speed = look_speed
@@ -253,7 +287,7 @@ func apply_all_settings() -> void:
 	# 3. Update Enemy AI Debug Overlay (if debug build)
 	if OS.is_debug_build():
 		EnemyDebugOverlay.global_overlay_visible = show_ai_debug
-		var dt = get_node_or_null("/root/DebugTools")
+		var dt = _debug_tools
 		if dt and dt.has_signal("ai_debug_overlay_toggled"):
 			dt.ai_debug_overlay_toggled.emit(show_ai_debug)
 	
@@ -379,7 +413,13 @@ func should_show_touch_controls() -> bool:
 func vibrate(duration_ms: int, strength: float = 0.5) -> void:
 	if not haptics:
 		return
-	if OS.has_feature("mobile"):
-		Input.vibrate_handheld(duration_ms, clampf(strength, 0.0, 1.0))
+	if _haptics:
+		# HapticsManager has three fixed pulses (and only fires on mobile); pick the closest one.
+		if duration_ms <= 30:
+			_haptics.light()
+		elif duration_ms <= 80:
+			_haptics.medium()
+		else:
+			_haptics.heavy()
 	for joy in Input.get_connected_joypads():
 		Input.start_joy_vibration(joy, strength * 0.6, strength, duration_ms / 1000.0)

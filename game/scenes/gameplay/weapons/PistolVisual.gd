@@ -11,16 +11,24 @@ extends Node3D
 var _initial_slide_z: float = 0.0
 var _flash_timer: float = 0.0
 
+## Services come from GameService (see GameService._inject_into_new_nodes); null when run without it.
+var _checkpoints: CheckpointManager
+var _input_manager: InputManager
+
+func inject_services(registry: Node) -> void:
+	_checkpoints = registry.get_service(&"checkpoint") as CheckpointManager
+	_input_manager = registry.get_service(&"input") as InputManager
+
 func _ready() -> void:
 	hide_muzzle_flash()
 	if slide:
 		_initial_slide_z = slide.position.z
 	
-	var im = get_node_or_null("/root/InputManager")
+	var im = _input_manager
 	if im and im.has_signal("pause_toggled"):
 		im.pause_toggled.connect(_on_pause_toggled)
 	
-	var cm = get_node_or_null("/root/CheckpointManager")
+	var cm = _checkpoints
 	if cm and cm.has_signal("player_respawned"):
 		cm.player_respawned.connect(_on_player_respawned)
 

@@ -1,3 +1,4 @@
+class_name SubtitleManager
 extends Node
 
 ## Project: Lockdown - Subtitle Manager (Milestone 7)

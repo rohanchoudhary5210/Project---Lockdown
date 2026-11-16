@@ -11,6 +11,12 @@ var _start_time: float = 0.0
 var _cleared: bool = false
 var _screen_instance: CanvasLayer = null
 
+## Services come from GameService (see GameService._inject_into_new_nodes); null when run without it.
+var _input_manager: InputManager
+
+func inject_services(registry: Node) -> void:
+	_input_manager = registry.get_service(&"input") as InputManager
+
 func _ready() -> void:
 	collision_layer = 0
 	collision_mask = 2 # Player body is on physics layer 2
@@ -42,7 +48,7 @@ func trigger_clear() -> void:
 			rescued = true
 			break
 	
-	var im = get_node_or_null("/root/InputManager")
+	var im = _input_manager
 	if im:
 		im.is_level_clear_active = true
 		im.mouse_captured = false

@@ -55,6 +55,21 @@ var current_aim_target_dist: float = 0.0
 var _aim_debug_overlay: Node = null
 var _just_teleported: bool = true
 
+var _logger: Node
+## Services come from GameService (see GameService._inject_into_new_nodes); null when run without it.
+var _checkpoints: CheckpointManager
+var _noise_bus: NoiseBus
+var _settings: SettingsManager
+var _spatial_audio: SpatialAudioManager
+
+func inject_services(registry: Node) -> void:
+	_logger = registry.get_service(&"logger")
+	_checkpoints = registry.get_service(&"checkpoint") as CheckpointManager
+	_input_manager = registry.get_service(&"input") as InputManager
+	_noise_bus = registry.get_service(&"noise") as NoiseBus
+	_settings = registry.get_service(&"settings") as SettingsManager
+	_spatial_audio = registry.get_service(&"spatial_audio") as SpatialAudioManager
+
 func _ready() -> void:
 	if not player_data:
 		player_data = preload("res://game/assets/data/default_player_data.tres")
@@ -95,15 +110,15 @@ func _ready() -> void:
 		health_component.damaged.connect(_on_damaged)
 		health_component.died.connect(_on_died)
 	
-	var cm = get_node_or_null("/root/CheckpointManager")
+	var cm = _checkpoints
 	if cm and cm.has_method("register_player"):
 		cm.register_player(self)
 	
-	var sm = get_node_or_null("/root/SettingsManager")
+	var sm = _settings
 	if sm and sm.has_method("apply_to_player"):
 		sm.apply_to_player(self)
 	
-	var am = get_node_or_null("/root/SpatialAudio")
+	var am = _spatial_audio
 	if am and am.has_method("register_player"):
 		am.register_player(self)
 	
@@ -116,7 +131,7 @@ func _ready() -> void:
 
 func _get_input_manager() -> Node:
 	if not _input_manager and is_inside_tree():
-		_input_manager = get_node_or_null("/root/InputManager")
+		_input_manager = _input_manager
 	return _input_manager
 
 ## Synchronizes top_level camera_pivot world orientation with pitch, player body yaw and recoil yaw
@@ -421,7 +436,7 @@ func _handle_footsteps(delta: float) -> void:
 			noise_radius = player_data.noise_sprint
 		
 		footstep_emitted.emit(noise_radius)
-		var nb = get_node_or_null("/root/NoiseBus")
+		var nb = _noise_bus
 		if nb:
 			nb.emit_noise(global_position, noise_radius, self, "footstep")
 
@@ -516,7 +531,7 @@ func heal(amount: float) -> void:
 		health_component.heal(amount)
 
 func _vibrate(duration_ms: int, strength: float) -> void:
-	var sm = get_node_or_null("/root/SettingsManager")
+	var sm = _settings
 	if sm and sm.has_method("vibrate"):
 		sm.vibrate(duration_ms, strength)
 
@@ -568,7 +583,8 @@ func _on_died() -> void:
 	_touch_recoil_recovery_yaw = 0.0
 	_camera_recoil_yaw = 0.0
 	_apply_camera_orientation()
-	print("[PLAYER DEATH] Officer incapacitated. Input frozen (Respawn system in M6).")
+	if _logger:
+		_logger.info("Player died, input frozen until respawn")
 	player_died.emit()
 
 func get_current_noise_radius() -> float:

@@ -31,6 +31,9 @@
 [ext_resource type="PackedScene" path="res://game/scenes/ui/mfw/Hud.tscn" id="29_8li4p"]
 [ext_resource type="Theme" path="res://game/assets/ui/lockdown_theme.tres" id="30_tryt5"]
 [ext_resource type="Script" path="res://game/scripts/controllers/ui/Hud.gd" id="31_epi7r"]
+[ext_resource type="Script" path="res://game/scripts/controllers/level/AmmoStash.gd" id="x_ammostash"]
+[ext_resource type="Script" path="res://game/scripts/controllers/level/Medkit.gd" id="x_medkit"]
+[ext_resource type="Script" path="res://game/scripts/controllers/level/LevelRoot.gd" id="x_levelroot"]
 
 [sub_resource type="NavigationMesh" id="NavigationMesh_2woh2"]
 vertices = PackedVector3Array(31.3, 3.05, 3.55, 31.8, 3.05, 3.3, 31.8, 3.05, 0.3, 4.3, 3.05, 0.3, 4.3, 3.05, 5.3, 4.8, 3.05, 5.55, 4.8, 3.05, 12.3, 4.3, 3.05, 12.55, 4.3, 3.05, 15.8, 35.8, 3.05, 15.8, 35.8, 3.05, 12.8, 31.3, 3.05, 12.55, 6.8, 0.3, 2.3, 7.05, 0.3, 3.3, 7.3, 0.3, 3.3, 7.3, 0.3, 0.55, 4.55, 0.3, 3.55, 4.8, 0.3, 3.55, 5.05, 0.3, 2.3, 4.55, 0.3, 0.55, 5.05, 0.3, 4.55, 4.8, 0.3, 6.3, 7.55, 0.3, 4.3, 6.8, 0.3, 4.55, 8.8, 0.3, 0.55, 8.8, 0.3, 4.05, 10.8, 0.3, 3.8, 11.3, 0.3, 0.55, 9.05, 0.3, 6.05, 11.3, 0.3, 6.3, 10.8, 0.3, 6.05, 14.8, 0.3, 4.55, 12.8, 0.3, 4.3, 12.8, 0.3, 6.3, 17.05, 0.3, 6.05, 16.8, 0.3, 4.05, 15.3, 0.3, 4.05, 18.8, 0.3, 2.55, 19.05, 0.3, 0.55, 16.8, 0.3, 0.55, 19.3, 0.3, 6.3, 18.8, 0.3, 6.05, 19.05, 0.3, 4.05, 19.3, 0.3, 2.8, 12.8, 0.3, 0.55, 12.8, 0.3, 2.55, 15.05, 0.3, 2.55, 15.3, 0.3, 0.55, 22.8, 0.3, 4.55, 20.8, 0.3, 4.3, 20.8, 0.3, 6.3, 25.05, 0.3, 6.05, 24.8, 0.3, 4.05, 23.3, 0.3, 4.05, 23.3, 0.3, 0.55, 20.8, 0.3, 0.55, 21.05, 0.3, 2.3, 23.05, 0.3, 2.55, 27.3, 0.3, 6.3, 26.8, 0.3, 6.05, 27.05, 0.3, 4.05, 24.8, 0.3, 0.55, 27.3, 0.3, 0.55, 28.8, 0.3, 0.55, 28.8, 0.3, 1.55, 31.05, 0.3, 1.55, 31.3, 0.3, 0.55, 31.05, 0.3, 5.3, 31.3, 0.3, 6.3, 28.8, 0.3, 5.3, 28.8, 0.3, 6.3, 32.3, 5.55, 4.3, 32.3, 5.55, 11.8, 35.8, 5.55, 11.8, 35.8, 5.55, 4.3, 35.3, 2.3, 4.55, 32.8, 2.3, 4.55, 32.55, 0.3, 7.8, 32.8, 0.3, 11.3, 35.3, 0.3, 11.3, 35.3, 0.3, 8.6, 35.3, 0.8, 7.25, 35.3, 2.05, 5.9, 32.716667, 2.05, 5.633333, 0.3, 5.55, 6.3, 0.3, 5.55, 11.8, 3.8, 5.55, 11.8, 3.8, 5.55, 6.3, 3.55, 0.3, 7.8, 3.3, 0.3, 6.55, 0.55, 0.3, 6.55, 0.55, 0.3, 10.3, 3.3, 0.3, 10.3, 3.55, 0.3, 8.05, 12.3, 0.3, 8.05, 8.05, 0.3, 7.55, 13.8, 0.3, 7.8, 15.3, 0.3, 8.3, 24.3, 0.3, 8.05, 8.05, 0.3, 9.55, 7.8, 0.3, 9.8, 8.05, 0.3, 11.8, 8.3, 0.3, 12.05, 11.8, 0.3, 11.8, 13.3, 0.3, 9.55, 12.05, 0.3, 13.8, 13.3, 0.3, 15.3, 9.8, 0.3, 13.8, 9.8, 0.3, 15.3, 16.55, 0.3, 11.05, 16.3, 0.3, 9.55, 14.8, 0.3, 9.55, 14.8, 0.3, 13.3, 16.3, 0.3, 13.3, 5.8, 0.3, 10.05, 4.8, 0.3, 9.55, 5.8, 0.3, 11.8, 4.55, 0.3, 15.3, 8.3, 0.3, 15.3, 24.8, 0.3, 10.3, 25.3, 0.3, 10.05, 25.05, 0.3, 9.55, 22.05, 0.3, 9.55, 21.8, 0.3, 11.05, 22.55, 0.3, 11.3, 24.55, 0.3, 11.55, 24.8, 0.3, 11.3, 20.05, 0.3, 11.05, 22.3, 0.3, 13.3, 19.8, 0.3, 9.55, 17.8, 0.3, 9.55, 17.55, 0.3, 10.8, 17.8, 0.3, 13.3, 25.05, 0.3, 12.3, 24.55, 0.3, 13.3, 27.3, 0.3, 13.3, 27.05, 0.3, 12.05, 27.3, 0.3, 9.55, 27.05, 0.3, 10.3, 31.3, 0.3, 12.55, 31.3, 0.3, 9.55, 28.8, 0.3, 9.55, 28.8, 0.3, 13.3, 14.8, 0.3, 15.3, 35.3, 0.3, 15.3, 32.3, 0.3, 14.8, 14.8, 0.3, 14.8, 32.3, 0.3, 13.3, 35.3, 0.3, 12.8)
@@ -733,92 +736,8 @@ size = Vector3(3.6, 0.4, 0.5)
 material = ExtResource("9_6dy6a")
 size = Vector3(3.6, 0.4, 0.5)
 
-[sub_resource type="GDScript" id="GDScript_stash"]
-script/source = "extends StaticBody3D
-
-@onready var interactable: InteractableComponent = $InteractableComponent
-var is_looted: bool = false
-const AMMO_AMOUNT: int = 24
-
-func get_prompt() -> String:
-	if is_looted:
-		return \"\"
-	var player = get_tree().get_first_node_in_group(\"player\")
-	if player:
-		var weapon = player.find_child(\"Pistol\", true, false)
-		if weapon and not weapon.can_add_reserve_ammo():
-			return \"Ammo Full\"
-	var im = get_node_or_null(\"/root/InputManager\")
-	var key = im.get_action_key_label(\"interact\") if im else \"E\"
-	return \"[%s] Take Ammunition (+%d)\" % [key, AMMO_AMOUNT]
-
-func interact(interactor: Node) -> void:
-	if is_looted:
-		return
-	var weapon = interactor.find_child(\"Pistol\", true, false)
-	if weapon:
-		if not weapon.can_add_reserve_ammo():
-			return
-		var added = weapon.add_reserve_ammo(AMMO_AMOUNT)
-		if added > 0:
-			is_looted = true
-			var am = get_node_or_null(\"/root/SpatialAudio\")
-			if am and am.has_method(\"play_pickup\"):
-				am.play_pickup()
-			if interactable:
-				interactable.is_interactable = false
-
-func reset_pickup() -> void:
-	is_looted = false
-	visible = true
-	collision_layer = 8
-	if interactable:
-		interactable.is_interactable = true
-"
-
-[sub_resource type="GDScript" id="GDScript_medkit"]
-script/source = "extends StaticBody3D
-
-@onready var interactable: InteractableComponent = $InteractableComponent
-var is_looted: bool = false
-const HEAL_AMOUNT: float = 35.0
-
-func get_prompt() -> String:
-	if is_looted:
-		return \"\"
-	var player = get_tree().get_first_node_in_group(\"player\")
-	if player and player.health_component:
-		if player.health_component.current_health >= player.health_component.max_health:
-			return \"Health Full\"
-	var im = get_node_or_null(\"/root/InputManager\")
-	var key = im.get_action_key_label(\"interact\") if im else \"E\"
-	return \"[%s] Pick Up Medkit (+%d HP)\" % [key, int(HEAL_AMOUNT)]
-
-func interact(interactor: Node) -> void:
-	if is_looted:
-		return
-	if interactor.has_method(\"heal\") and interactor.health_component:
-		if interactor.health_component.current_health >= interactor.health_component.max_health:
-			return # Do not consume if health is already full!
-		interactor.heal(HEAL_AMOUNT)
-		is_looted = true
-		var am = get_node_or_null(\"/root/SpatialAudio\")
-		if am and am.has_method(\"play_pickup\"):
-			am.play_pickup()
-		visible = false
-		collision_layer = 0
-		if interactable:
-			interactable.is_interactable = false
-
-func reset_pickup() -> void:
-	is_looted = false
-	visible = true
-	collision_layer = 8
-	if interactable:
-		interactable.is_interactable = true
-"
-
 [node name="Floor01" type="Node3D" unique_id=21541701]
+script = ExtResource("x_levelroot")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1871432817]
 environment = ExtResource("1_5sl6y")
@@ -1996,25 +1915,25 @@ checkpoint_order = 2
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, 2)
 collision_layer = 8
 collision_mask = 0
-script = SubResource("GDScript_stash")
+script = ExtResource("x_ammostash")
 
 [node name="Medkit_Apt104" type="StaticBody3D" parent="." unique_id=1369282612 instance=ExtResource("14_elma0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, 12)
 collision_layer = 8
 collision_mask = 0
-script = SubResource("GDScript_medkit")
+script = ExtResource("x_medkit")
 
 [node name="Ammo_Utility" type="StaticBody3D" parent="." unique_id=1363025366 instance=ExtResource("13_p6biy")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.5, 0, 10)
 collision_layer = 8
 collision_mask = 0
-script = SubResource("GDScript_stash")
+script = ExtResource("x_ammostash")
 
 [node name="Medkit_Utility" type="StaticBody3D" parent="." unique_id=313671924 instance=ExtResource("14_elma0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15.5, 0, 12.5)
 collision_layer = 8
 collision_mask = 0
-script = SubResource("GDScript_medkit")
+script = ExtResource("x_medkit")
 
 [node name="CaptiveOfficer" type="StaticBody3D" parent="." unique_id=1281788264 groups=["captives"] instance=ExtResource("15_epbms")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 0, 3)

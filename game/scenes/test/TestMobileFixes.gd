@@ -5,6 +5,7 @@ func _init() -> void:
 	call_deferred("_run_all_tests")
 
 func _run_all_tests() -> void:
+	await TestServices.start(self)
 	var passed = 0
 	var failed = 0
 	
@@ -84,7 +85,7 @@ func _run_all_tests() -> void:
 		quit(1)
 
 func test_pause_button_dimensions_and_position() -> bool:
-	var sm = root.get_node_or_null("SettingsManager")
+	var sm = TestServices.get_service(self, &"settings")
 	if sm:
 		sm.set_setting("touch_controls_mode", 1) # Enable touch controls
 	
@@ -140,7 +141,7 @@ func test_pause_button_dimensions_and_position() -> bool:
 	return true
 
 func test_android_back_button() -> bool:
-	var im = root.get_node_or_null("InputManager")
+	var im = TestServices.get_service(self, &"input")
 	if not im:
 		printerr("InputManager autoload not found")
 		return false
@@ -169,7 +170,7 @@ func test_android_back_button() -> bool:
 	return true
 
 func test_auto_pause_on_focus_loss() -> bool:
-	var im = root.get_node_or_null("InputManager")
+	var im = TestServices.get_service(self, &"input")
 	if not im:
 		return false
 	
@@ -228,8 +229,8 @@ func test_touch_controls_hidden_when_paused() -> bool:
 	return true
 
 func test_touch_device_mouse_capture() -> bool:
-	var im = root.get_node_or_null("InputManager")
-	var sm = root.get_node_or_null("SettingsManager")
+	var im = TestServices.get_service(self, &"input")
+	var sm = TestServices.get_service(self, &"settings")
 	if not im or not sm:
 		return false
 	
@@ -273,8 +274,8 @@ func test_touch_device_mouse_capture() -> bool:
 	return true
 
 func test_recoil_scaling() -> bool:
-	var im = root.get_node_or_null("InputManager")
-	var sm = root.get_node_or_null("SettingsManager")
+	var im = TestServices.get_service(self, &"input")
+	var sm = TestServices.get_service(self, &"settings")
 	var pistol_data = load("res://game/assets/data/pistol_data.tres") as WeaponData
 	if not pistol_data:
 		printerr("Could not load pistol_data.tres")
@@ -369,7 +370,7 @@ func test_recoil_auto_recovery() -> bool:
 	return true
 
 func test_settings_persistence() -> bool:
-	var sm = root.get_node_or_null("SettingsManager")
+	var sm = TestServices.get_service(self, &"settings")
 	if not sm:
 		return false
 	
@@ -378,16 +379,13 @@ func test_settings_persistence() -> bool:
 		printerr("SettingsManager touch_recoil not updated")
 		return false
 	
-	# Verify config file on disk
-	var cfg = ConfigFile.new()
-	var err = cfg.load("user://settings.cfg")
-	if err != OK:
-		printerr("Could not load user://settings.cfg")
-		return false
-	
-	var val = cfg.get_value("controls", "touch_recoil", -1.0)
-	if absf(val - 0.70) > 0.001:
-		printerr("touch_recoil in user://settings.cfg expected 0.70, got %f" % val)
+	# Round trip through disk: reload the save files, forget the value, load the settings back
+	var save = TestServices.get_service(self, &"save")
+	save.load_game()
+	sm.touch_recoil = 0.0
+	sm.load_settings()
+	if absf(sm.touch_recoil - 0.70) > 0.001:
+		printerr("touch_recoil after reloading the save expected 0.70, got %f" % sm.touch_recoil)
 		return false
 	
 	# Restore default

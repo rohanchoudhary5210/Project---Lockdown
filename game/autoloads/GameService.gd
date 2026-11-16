@@ -80,6 +80,8 @@ func _ready() -> void:
 	add_child(ui)
 	
 	_register_services()
+	_add_lockdown_services()
+	_inject_into_new_nodes()
 	logger.info("GameService initialized")
 
 func create_feature(feature_script: Script, parent: Node, dependencies: Dictionary) -> GameFeature:
@@ -96,6 +98,47 @@ func _register_services() -> void:
 	registry.register(&"save", save)
 	registry.register(&"scene", scene)
 	registry.register(&"ui", ui)
+
+# ── Lockdown game services ─────────────────────────────────────────────────
+# key -> script. Created in this order; each one gets inject_services() before it enters the tree,
+# so its _ready() can already use the others.
+const LOCKDOWN_SERVICES := {
+	&"settings": "res://game/scripts/managers/SettingsManager.gd",
+	&"input": "res://game/scripts/managers/InputManager.gd",
+	&"time": "res://game/scripts/managers/TimeManager.gd",
+	&"debug": "res://game/scripts/managers/DebugTools.gd",
+	&"noise": "res://game/scripts/managers/NoiseBus.gd",
+	&"checkpoint": "res://game/scripts/managers/CheckpointManager.gd",
+	&"subtitle": "res://game/scripts/managers/SubtitleManager.gd",
+	&"spatial_audio": "res://game/scripts/managers/SpatialAudioManager.gd",
+}
+
+func _add_lockdown_services() -> void:
+	var nodes: Array[Node] = []
+	for key in LOCKDOWN_SERVICES:
+		var node: Node = load(LOCKDOWN_SERVICES[key]).new()
+		node.name = LOCKDOWN_SERVICES[key].get_file().get_basename()
+		registry.register(key, node)
+		nodes.append(node)
+	for node in nodes:
+		if node.has_method("inject_services"):
+			node.inject_services(registry)
+	for node in nodes:
+		add_child(node)
+
+## Pattern 2 auto-wiring for every node, not only scenes loaded by SceneManager: runtime-spawned
+## nodes and scenes started directly (editor F6, tests) get inject_services() on entering the tree,
+## i.e. before their _ready(). Template controllers keep their own inject-then-_on_ready lifecycle.
+func _inject_into_new_nodes() -> void:
+	get_tree().node_added.connect(_on_node_added)
+	for node in get_tree().root.find_children("*", "", true, false):
+		_on_node_added(node)
+
+func _on_node_added(node: Node) -> void:
+	if node is UIController or node is PlayerController:
+		return
+	if node.has_method("inject_services") and node.get_parent() != self:
+		node.inject_services(registry)
 
 func _instantiate_and_add(script_path: String, node_name: String) -> Node:
 	var script = load(script_path)

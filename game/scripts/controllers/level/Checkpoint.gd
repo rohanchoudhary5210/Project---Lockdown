@@ -20,6 +20,12 @@ var _active_mat: StandardMaterial3D = null
 var _player_inside: bool = false
 var _player_inside_ref: Node3D = null
 
+## Services come from GameService (see GameService._inject_into_new_nodes); null when run without it.
+var _checkpoints: CheckpointManager
+
+func inject_services(registry: Node) -> void:
+	_checkpoints = registry.get_service(&"checkpoint") as CheckpointManager
+
 func _ready() -> void:
 	if checkpoint_id.is_empty():
 		checkpoint_id = name
@@ -33,7 +39,7 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	if _player_inside and not is_active and is_instance_valid(_player_inside_ref):
-		var cm = get_node_or_null("/root/CheckpointManager")
+		var cm = _checkpoints
 		if cm and "current_checkpoint_order" in cm:
 			if checkpoint_order <= cm.current_checkpoint_order:
 				return
@@ -74,7 +80,7 @@ func _on_body_entered(body: Node3D) -> void:
 	if is_active:
 		return
 	
-	var cm = get_node_or_null("/root/CheckpointManager")
+	var cm = _checkpoints
 	if cm and "current_checkpoint_order" in cm:
 		if checkpoint_order <= cm.current_checkpoint_order:
 			return
@@ -94,7 +100,7 @@ func activate(player: Node3D) -> void:
 	if is_active:
 		return
 	
-	var cm = get_node_or_null("/root/CheckpointManager")
+	var cm = _checkpoints
 	if cm and "current_checkpoint_order" in cm:
 		if checkpoint_order <= cm.current_checkpoint_order:
 			return

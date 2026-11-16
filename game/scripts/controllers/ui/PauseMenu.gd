@@ -17,6 +17,14 @@ signal quit_requested()
 @onready var quit_button: Button = %QuitButton
 @onready var settings_menu: SettingsMenu = %SettingsMenu
 
+## Services come from GameService (see GameService._inject_into_new_nodes); null when run without it.
+var _checkpoints: CheckpointManager
+var _input_manager: InputManager
+
+func inject_services(registry: Node) -> void:
+	_checkpoints = registry.get_service(&"checkpoint") as CheckpointManager
+	_input_manager = registry.get_service(&"input") as InputManager
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	visible = false
@@ -51,7 +59,7 @@ func close_menu() -> void:
 func _on_resume_pressed() -> void:
 	close_menu()
 	resumed.emit()
-	var im = get_node_or_null("/root/InputManager")
+	var im = _input_manager
 	if im and im.has_method("capture_mouse"):
 		im.capture_mouse()
 
@@ -75,7 +83,7 @@ func _on_settings_back() -> void:
 func _on_restart_pressed() -> void:
 	close_menu()
 	restart_checkpoint_requested.emit()
-	var cm = get_node_or_null("/root/CheckpointManager")
+	var cm = _checkpoints
 	if cm and cm.has_method("respawn_player"):
 		cm.respawn_player()
 
@@ -83,7 +91,7 @@ func _on_quit_pressed() -> void:
 	close_menu()
 	quit_requested.emit()
 	get_tree().paused = false
-	var im = get_node_or_null("/root/InputManager")
+	var im = _input_manager
 	if im:
 		im.is_gameplay_paused = false
 		im.mouse_captured = false

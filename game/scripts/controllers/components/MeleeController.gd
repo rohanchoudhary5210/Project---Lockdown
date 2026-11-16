@@ -35,6 +35,13 @@ var _camera_feedback: CameraFeedbackComponent = null
 var _time_manager: Node = null
 var _shape_cast: ShapeCast3D = null
 
+## Services come from GameService (see GameService._inject_into_new_nodes); null when run without it.
+var _input_manager: InputManager
+
+func inject_services(registry: Node) -> void:
+	_input_manager = registry.get_service(&"input") as InputManager
+	_time_manager = registry.get_service(&"time") as TimeManager
+
 func _ready() -> void:
 	if not melee_data:
 		melee_data = preload("res://game/assets/data/default_melee_data.tres")
@@ -55,8 +62,6 @@ func _resolve_external_references() -> void:
 			_camera_feedback = _camera.get_node("CameraFeedbackComponent")
 		curr = curr.get_parent()
 	
-	if has_node("/root/TimeManager"):
-		_time_manager = get_node("/root/TimeManager")
 
 func _setup_shape_cast() -> void:
 	_shape_cast = ShapeCast3D.new()
@@ -93,7 +98,7 @@ func _handle_input() -> void:
 			_end_block()
 		return
 	
-	var im = get_node_or_null("/root/InputManager")
+	var im = _input_manager
 	if im and (not im.mouse_captured or im.just_recaptured):
 		if is_blocking:
 			_end_block()

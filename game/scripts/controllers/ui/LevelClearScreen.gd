@@ -14,6 +14,14 @@ signal restart_requested()
 
 var _can_restart: bool = false
 
+## Services come from GameService (see GameService._inject_into_new_nodes); null when run without it.
+var _checkpoints: CheckpointManager
+var _input_manager: InputManager
+
+func inject_services(registry: Node) -> void:
+	_checkpoints = registry.get_service(&"checkpoint") as CheckpointManager
+	_input_manager = registry.get_service(&"input") as InputManager
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	visible = false
@@ -41,7 +49,7 @@ func show_screen(elapsed_seconds: float, rescued: bool) -> void:
 			rescue_label.modulate = Color(0.9, 0.35, 0.35) # Red / alert
 	
 	if hint_label:
-		var im = get_node_or_null("/root/InputManager")
+		var im = _input_manager
 		var key = im.get_action_key_label("interact") if im else "E"
 		var jump = im.get_action_key_label("jump") if im else "Space"
 		hint_label.text = "Press [%s] or [%s] to restart" % [key, jump]
@@ -64,11 +72,11 @@ func _on_restart_pressed() -> void:
 	if not _can_restart:
 		return
 	restart_requested.emit()
-	var im = get_node_or_null("/root/InputManager")
+	var im = _input_manager
 	if im:
 		im.is_level_clear_active = false
 		im.capture_mouse()
-	var cm = get_node_or_null("/root/CheckpointManager")
+	var cm = _checkpoints
 	if cm and cm.has_method("reset_session"):
 		cm.reset_session()
 	get_tree().paused = false

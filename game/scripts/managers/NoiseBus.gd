@@ -1,3 +1,4 @@
+class_name NoiseBus
 extends Node
 
 ## Project: Lockdown - NoiseBus Autoload

@@ -89,6 +89,8 @@ func _ready() -> void:
 
 Available keys are `&"game"`, `&"audio"`, `&"haptics"`, `&"save"`, `&"scene"`, `&"ui"`, `&"network"`, `&"bus"`, `&"logger"` and `&"config"`.
 
+**Project: Lockdown adds:** `&"input"` (InputManager), `&"time"` (TimeManager, hitstop), `&"debug"` (DebugTools), `&"noise"` (NoiseBus), `&"checkpoint"` (CheckpointManager), `&"subtitle"` (SubtitleManager), `&"settings"` (SettingsManager, stored through SaveManager) and `&"spatial_audio"` (SpatialAudioManager, 3D sound; the template `&"audio"` stays for UI/music). GameService also calls `inject_services(registry)` on every node as it enters the tree (before its `_ready()`), so runtime-spawned nodes and scenes started directly (F6, test scripts) are wired too. Level roots use `LevelRoot.gd`, which starts GameService when the scene runs without `Boot.tscn`.
+
 ## 5. Audio
 
 ```gdscript AudioExample.gd

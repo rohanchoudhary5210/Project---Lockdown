@@ -7,6 +7,7 @@ func _init() -> void:
 	call_deferred("_run_all_tests")
 
 func _run_all_tests() -> void:
+	await TestServices.start(self)
 	var passed = 0
 	var failed = 0
 	
@@ -153,7 +154,7 @@ func test_aim_assist_los_and_walls() -> bool:
 	player.position = Vector3(0, 0, 0)
 	test_world.add_child(player)
 	
-	var im = root.get_node_or_null("InputManager")
+	var im = TestServices.get_service(self, &"input")
 	if im:
 		im.last_input_device = im.InputDevice.TOUCH
 		im.mouse_captured = true
@@ -213,7 +214,7 @@ func test_aim_assist_closest_to_crosshair() -> bool:
 	player.position = Vector3(0, 0, 0)
 	test_world.add_child(player)
 	
-	var im = root.get_node_or_null("InputManager")
+	var im = TestServices.get_service(self, &"input")
 	if im:
 		im.last_input_device = im.InputDevice.TOUCH
 		im.mouse_captured = true
@@ -265,7 +266,7 @@ func test_aim_assist_device_and_settings() -> bool:
 	await process_frame
 	await process_frame
 	
-	var im = root.get_node_or_null("InputManager")
+	var im = TestServices.get_service(self, &"input")
 	
 	# Rule 1: Mouse never gets aim assist, even if setting is High
 	if im:
@@ -313,7 +314,7 @@ func test_aim_assist_friction_and_magnetism() -> bool:
 	await process_frame
 	await process_frame
 	
-	var im = root.get_node_or_null("InputManager")
+	var im = TestServices.get_service(self, &"input")
 	if im:
 		im.last_input_device = im.InputDevice.TOUCH
 	
@@ -370,7 +371,7 @@ func test_aim_assist_disabled_states() -> bool:
 	await process_frame
 	await process_frame
 	
-	var im = root.get_node_or_null("InputManager")
+	var im = TestServices.get_service(self, &"input")
 	if im:
 		im.last_input_device = im.InputDevice.TOUCH
 	player.aim_assist_setting = "High"
@@ -501,10 +502,10 @@ func test_touch_deadzone_and_curve() -> bool:
 	
 	tc._look_touch_index = 1
 	
-	var sm = root.get_node_or_null("SettingsManager")
+	var sm = TestServices.get_service(self, &"settings")
 	var old_smoothing = sm.touch_smoothing if sm else 0.0
 	if sm: sm.touch_smoothing = 0.0
-	var im = root.get_node("InputManager")
+	var im = TestServices.get_service(self, &"input")
 
 	# Turns a steady swipe of `px_per_frame` for 30 frames at 60 FPS, split into `events` per frame.
 	var swipe = func(px_per_frame: float, events: int) -> float:
@@ -562,7 +563,7 @@ func test_framerate_independent_smoothing() -> bool:
 	await process_frame
 	
 	tc._look_touch_index = 1
-	var sm = root.get_node_or_null("SettingsManager")
+	var sm = TestServices.get_service(self, &"settings")
 	
 	# Case A: Look Smoothing = 0 (Raw)
 	if sm:
@@ -597,11 +598,11 @@ func test_framerate_independent_smoothing() -> bool:
 	return true
 
 func test_touch_sensitivity_sliders() -> bool:
-	var im = root.get_node_or_null("InputManager")
+	var im = TestServices.get_service(self, &"input")
 	if not im:
 		return false
 	
-	var sm = root.get_node_or_null("SettingsManager")
+	var sm = TestServices.get_service(self, &"settings")
 	if sm:
 		sm.set_setting("touch_sens_h", 0.0020)
 		sm.set_setting("touch_sens_v", 0.0016) # 0.8x of H

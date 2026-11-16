@@ -59,6 +59,14 @@ var _edit_drag_touch_id: int = -1
 var _edit_drag_offset: Vector2 = Vector2.ZERO
 var _global_opacity: float = 1.0
 
+## Services come from GameService (see GameService._inject_into_new_nodes); null when run without it.
+var _input_manager: InputManager
+var _settings: SettingsManager
+
+func inject_services(registry: Node) -> void:
+	_input_manager = registry.get_service(&"input") as InputManager
+	_settings = registry.get_service(&"settings") as SettingsManager
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	process_priority = -10
@@ -91,7 +99,7 @@ func _ready() -> void:
 	
 	_update_visibility()
 	
-	var sm = get_node_or_null("/root/SettingsManager")
+	var sm = _settings
 	if sm and sm.has_signal("settings_changed"):
 		sm.settings_changed.connect(_on_settings_changed)
 	
@@ -143,7 +151,7 @@ func _update_visibility() -> void:
 		set_process_unhandled_input(true)
 		return
 	
-	var sm = get_node_or_null("/root/SettingsManager")
+	var sm = _settings
 	var should_show: bool = false
 	if sm and sm.has_method("should_show_touch_controls"):
 		should_show = sm.should_show_touch_controls()
@@ -193,7 +201,7 @@ func _process(delta: float) -> void:
 	_smoothed_look_rate = _smoothed_look_rate.lerp(target_rate, alpha)
 	var smoothed_frame_delta = _smoothed_look_rate * delta
 	
-	var sm = get_node_or_null("/root/SettingsManager")
+	var sm = _settings
 	var smoothing_factor: float = sm.touch_smoothing if sm else 0.0
 	var final_frame_delta = compensated_frame_delta.lerp(smoothed_frame_delta, smoothing_factor)
 	
@@ -215,7 +223,7 @@ func _input(event: InputEvent) -> void:
 		_handle_screen_drag(event)
 	
 	# Desktop debug mouse emulation
-	var sm = get_node_or_null("/root/SettingsManager")
+	var sm = _settings
 	if sm and sm.touch_controls_mode == 1:
 		if event is InputEventMouseButton:
 			_handle_mouse_button(event)
@@ -390,7 +398,7 @@ func _release_movement_actions() -> void:
 	Input.action_release("sprint")
 
 func _inject_look_motion(rel: Vector2) -> void:
-	var im = get_node_or_null("/root/InputManager")
+	var im = _input_manager
 	if im and im.has_method("inject_touch_look"):
 		im.inject_touch_look(rel)
 	else:
@@ -438,7 +446,7 @@ func _force_release_all_buttons() -> void:
 func _on_pause_pressed() -> void:
 	if _is_edit_mode:
 		return
-	var im = get_node_or_null("/root/InputManager")
+	var im = _input_manager
 	if im and im.has_method("pause_gameplay"):
 		im.pause_gameplay()
 	elif im and im.has_method("toggle_pause"):

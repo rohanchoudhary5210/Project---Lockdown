@@ -23,6 +23,16 @@ var is_rescued: bool = false
 var _kneeling_mat: StandardMaterial3D = null
 var _rescued_mat: StandardMaterial3D = null
 
+## Services come from GameService (see GameService._inject_into_new_nodes); null when run without it.
+var _input_manager: InputManager
+var _spatial_audio: SpatialAudioManager
+var _subtitles: SubtitleManager
+
+func inject_services(registry: Node) -> void:
+	_input_manager = registry.get_service(&"input") as InputManager
+	_spatial_audio = registry.get_service(&"spatial_audio") as SpatialAudioManager
+	_subtitles = registry.get_service(&"subtitle") as SubtitleManager
+
 func _ready() -> void:
 	if captive_id.is_empty():
 		captive_id = name
@@ -46,7 +56,7 @@ func _setup_materials() -> void:
 func get_prompt() -> String:
 	if is_rescued:
 		return ""
-	var im = get_node_or_null("/root/InputManager")
+	var im = _input_manager
 	var key = im.get_action_key_label("interact") if im else "E"
 	return "[%s] Hold to Rescue Officer" % key
 
@@ -67,12 +77,12 @@ func complete_interaction(player: Node) -> void:
 		if player.has_method("heal"):
 			player.heal(35.0)
 	
-	var am = get_node_or_null("/root/SpatialAudio")
+	var am = _spatial_audio
 	if am and am.has_method("play_pickup"):
 		am.play_pickup()
 	
 	# 3. Subtitles: play 2 intel dialogue lines via SubtitleManager
-	var sm = get_node_or_null("/root/SubtitleManager")
+	var sm = _subtitles
 	if sm:
 		sm.play_subtitle(officer_name, "Good to see you, officer. The stairwell to the next floor is watched by two shooters.", 3.5)
 		sm.play_subtitle(officer_name, "Take my spare rounds and patch up. Watch your corners.", 3.5)

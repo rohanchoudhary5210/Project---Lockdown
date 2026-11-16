@@ -11,6 +11,7 @@ func _init() -> void:
 	run_all_tests()
 
 func run_all_tests() -> void:
+	await TestServices.start(self)
 	print("\n=== STARTING PHONE CONTROLS & SETTINGS FIXES TEST SUITE ===")
 	
 	print("\n--- Test 1: Slider Dragging with F4 Overlay ON (No ImmediateMesh Crash) ---")
@@ -119,7 +120,7 @@ func test_slider_drag_with_f4_overlay() -> bool:
 	await process_frame
 	await process_frame
 	
-	var sm = root.get_node_or_null("SettingsManager")
+	var sm = TestServices.get_service(self, &"settings")
 	if not sm:
 		printerr("SettingsManager not found!")
 		test_world.queue_free()
@@ -170,7 +171,7 @@ func test_slider_drag_with_f4_overlay() -> bool:
 	return true
 
 func test_isolated_settings_application() -> bool:
-	var sm = root.get_node_or_null("SettingsManager")
+	var sm = TestServices.get_service(self, &"settings")
 	if not sm:
 		return false
 	
@@ -182,7 +183,7 @@ func test_isolated_settings_application() -> bool:
 	
 	# 1. Mouse sensitivity applies directly to PlayerData and InputManager
 	sm.set_setting("mouse_sensitivity", 0.0042, false)
-	var im = root.get_node_or_null("InputManager")
+	var im = TestServices.get_service(self, &"input")
 	if absf(im.mouse_sensitivity - 0.0042) > 0.00001:
 		printerr("InputManager mouse_sensitivity not updated! Got: ", im.mouse_sensitivity)
 		test_world.queue_free()
@@ -218,7 +219,7 @@ func test_disk_save_debounce() -> bool:
 	root.add_child(menu)
 	await process_frame
 	
-	var sm = root.get_node_or_null("SettingsManager")
+	var sm = TestServices.get_service(self, &"settings")
 	
 	# Slider value_changed: sm.set_setting(..., false) does not force disk write
 	menu._on_fov_changed(88.0)
@@ -245,7 +246,7 @@ func test_camera_look_in_process() -> bool:
 	test_world.add_child(player)
 	await process_frame
 	
-	var im = root.get_node_or_null("InputManager")
+	var im = TestServices.get_service(self, &"input")
 	if im:
 		im.last_input_device = im.InputDevice.TOUCH
 		im.mouse_captured = true
@@ -443,7 +444,7 @@ func test_turn_rate_consistency_framerate() -> bool:
 		root.add_child(player)
 		await process_frame
 		
-		var im = root.get_node_or_null("InputManager")
+		var im = TestServices.get_service(self, &"input")
 		if im:
 			im.last_input_device = im.InputDevice.TOUCH
 			im.mouse_captured = true

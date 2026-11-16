@@ -11,12 +11,23 @@ extends Control
 @onready var settings_menu: SettingsMenu = %SettingsMenu
 @onready var menu_buttons_container: Control = %MenuButtons
 
+## Services come from GameService (see GameService._inject_into_new_nodes); null when run without it.
+var _checkpoints: CheckpointManager
+var _input_manager: InputManager
+
+func inject_services(registry: Node) -> void:
+	_checkpoints = registry.get_service(&"checkpoint") as CheckpointManager
+	_input_manager = registry.get_service(&"input") as InputManager
+
+func _enter_tree() -> void:
+	ServiceBootstrap.ensure(self)
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	get_tree().paused = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	
-	var im = get_node_or_null("/root/InputManager")
+	var im = _input_manager
 	if im:
 		im.mouse_captured = false
 		im.is_gameplay_paused = false
@@ -41,11 +52,11 @@ func _ready() -> void:
 		settings_menu.back_pressed.connect(_on_settings_back)
 
 func _on_start_pressed() -> void:
-	var cm = get_node_or_null("/root/CheckpointManager")
+	var cm = _checkpoints
 	if cm and cm.has_method("reset_session"):
 		cm.reset_session()
 	
-	var im = get_node_or_null("/root/InputManager")
+	var im = _input_manager
 	if im and im.has_method("capture_mouse"):
 		im.capture_mouse()
 	

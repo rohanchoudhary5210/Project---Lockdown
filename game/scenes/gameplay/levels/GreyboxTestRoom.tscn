@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://cgreybox_test_room_001"]
+[gd_scene format=3 uid="uid://cgreybox_test_room_001"]
 
 [ext_resource type="Material" uid="uid://cmat_floor_001" path="res://game/assets/materials/placeholder/mat_floor.tres" id="1_floor"]
 [ext_resource type="Material" uid="uid://cmat_wall_001" path="res://game/assets/materials/placeholder/mat_wall.tres" id="2_wall"]
@@ -16,8 +16,10 @@
 [ext_resource type="Script" path="res://game/scripts/controllers/level/EncounterZone.gd" id="14_zone"]
 [ext_resource type="PackedScene" uid="uid://ccheckpoint_node_001" path="res://game/scenes/gameplay/props/Checkpoint.tscn" id="15_checkpoint"]
 [ext_resource type="PackedScene" uid="uid://ccaptive_officer_001" path="res://game/scenes/gameplay/entities/CaptiveOfficer.tscn" id="16_captive"]
+[ext_resource type="Script" path="res://game/scripts/controllers/level/LevelRoot.gd" id="x_levelroot"]
 
 [node name="GreyboxTestRoom" type="Node3D"]
+script = ExtResource("x_levelroot")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = ExtResource("4_env")

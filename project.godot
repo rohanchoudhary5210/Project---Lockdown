@@ -18,14 +18,6 @@ config/icon="res://icon.svg"
 [autoload]
 
 ServiceRegistry="*res://game/autoloads/ServiceRegistry.gd"
-InputManager="*res://game/scripts/managers/InputManager.gd"
-TimeManager="*res://game/scripts/managers/TimeManager.gd"
-DebugTools="*res://game/scripts/managers/DebugTools.gd"
-NoiseBus="*res://game/scripts/managers/NoiseBus.gd"
-CheckpointManager="*res://game/scripts/managers/CheckpointManager.gd"
-SubtitleManager="*res://game/scripts/managers/SubtitleManager.gd"
-SettingsManager="*res://game/scripts/managers/SettingsManager.gd"
-SpatialAudio="*res://game/scripts/managers/SpatialAudioManager.gd"
 
 [display]
 

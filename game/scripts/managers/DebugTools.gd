@@ -1,3 +1,4 @@
+class_name DebugTools
 extends Node
 
 ## DebugTools Autoload
@@ -17,6 +18,17 @@ var _perf_canvas: CanvasLayer = null
 var _perf_label: Label = null
 var _perf_accum_time: float = 0.0
 var _perf_accum_frames: int = 0
+
+
+## Logger comes from GameService; DebugTools has no other dependencies.
+var _logger: Node
+
+func inject_services(registry: Node) -> void:
+	_logger = registry.get_service(&"logger")
+
+func _log(message: String) -> void:
+	if _logger:
+		_logger.debug(message)
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -100,19 +112,19 @@ func _debug_toggle_perf_overlay() -> void:
 	_perf_accum_time = 0.0
 	_perf_accum_frames = 0
 	perf_overlay_toggled.emit(perf_overlay_visible)
-	print("[DEBUG] F5 Pressed: Performance Overlay toggled: ", perf_overlay_visible)
+	_log("F5: performance overlay %s" % perf_overlay_visible)
 
 func _debug_toggle_ai_overlay() -> void:
 	EnemyDebugOverlay.global_overlay_visible = not EnemyDebugOverlay.global_overlay_visible
 	ai_debug_overlay_toggled.emit(EnemyDebugOverlay.global_overlay_visible)
-	print("[DEBUG] F4 Pressed: Enemy AI Debug Overlay toggled: ", EnemyDebugOverlay.global_overlay_visible)
+	_log("F4: enemy AI debug overlay %s" % EnemyDebugOverlay.global_overlay_visible)
 
 func _debug_damage_player(amount: float) -> void:
 	var player: Node = get_tree().get_first_node_in_group("player")
 	if player and player.has_method("take_damage"):
 		player.take_damage(amount)
 		if player.health_component:
-			print("[DEBUG] F1 Pressed: Player took %d damage. Current HP: %d" % [int(amount), int(player.health_component.current_health)])
+			_log("F1: Player took %d damage. Current HP: %d" % [int(amount), int(player.health_component.current_health)])
 
 func _debug_refill_ammo() -> void:
 	var player: Node = get_tree().get_first_node_in_group("player")
@@ -120,10 +132,10 @@ func _debug_refill_ammo() -> void:
 		var weapon: Node = player.find_child("Pistol", true, false)
 		if weapon and weapon.has_method("refill_ammo"):
 			weapon.refill_ammo()
-			print("[DEBUG] F2 Pressed: Ammunition refilled to maximum capacity (%d / %d)" % [weapon.current_ammo, weapon.reserve_ammo])
+			_log("F2: Ammunition refilled to maximum capacity (%d / %d)" % [weapon.current_ammo, weapon.reserve_ammo])
 
 func _debug_toggle_god_mode() -> void:
 	var player: Node = get_tree().get_first_node_in_group("player")
 	if player and player.health_component:
 		player.health_component.invulnerable = not player.health_component.invulnerable
-		print("[DEBUG] F3 Pressed: God Mode set to %s" % str(player.health_component.invulnerable))
+		_log("F3: God Mode set to %s" % str(player.health_component.invulnerable))

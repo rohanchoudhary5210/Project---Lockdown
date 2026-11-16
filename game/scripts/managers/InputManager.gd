@@ -1,3 +1,4 @@
+class_name InputManager
 extends Node
 
 ## InputManager handles input routing, mouse capture, look delta aggregation,
@@ -33,8 +34,14 @@ var _recaptured_frames: int = 0
 var _mouse_delta: Vector2 = Vector2.ZERO
 var _touch_delta: Vector2 = Vector2.ZERO
 
+## Services come from GameService (see GameService._inject_into_new_nodes); null when run without it.
+var _settings: SettingsManager
+
+func inject_services(registry: Node) -> void:
+	_settings = registry.get_service(&"settings") as SettingsManager
+
 func is_touch_device() -> bool:
-	var sm = get_node_or_null("/root/SettingsManager")
+	var sm = _settings
 	if sm and sm.touch_controls_mode == 1:
 		return true
 	if sm and sm.touch_controls_mode == 2:
@@ -60,7 +67,7 @@ func _ready() -> void:
 		is_gameplay_paused = false
 		last_input_device = InputDevice.TOUCH
 	
-	var sm = get_node_or_null("/root/SettingsManager")
+	var sm = _settings
 	if sm and sm.has_signal("settings_changed"):
 		sm.settings_changed.connect(_on_settings_changed)
 

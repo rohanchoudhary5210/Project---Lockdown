@@ -68,6 +68,7 @@ func _init() -> void:
 	call_deferred("_run_protocol")
 
 func _run_protocol() -> void:
+	await TestServices.start(self)
 	DisplayServer.window_set_vsync_mode(0)
 	vp = root.get_viewport_rid()
 	RenderingServer.viewport_set_measure_render_time(vp, true)
@@ -85,7 +86,7 @@ func _run_protocol() -> void:
 	if health_comp:
 		health_comp.invulnerable = true
 	
-	var sm = root.get_node_or_null("SettingsManager")
+	var sm = TestServices.get_service(self, &"settings")
 	
 	# 1. RUN HIGH QUALITY (Triplanar Noise Materials)
 	if sm:

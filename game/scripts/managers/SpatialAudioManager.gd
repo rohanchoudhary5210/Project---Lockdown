@@ -1,3 +1,4 @@
+class_name SpatialAudioManager
 extends Node
 
 ## Project: Lockdown - Audio Manager Autoload
@@ -46,6 +47,12 @@ var _heartbeat_timer: float = 0.0
 const HEARTBEAT_INTERVAL: float = 0.8
 const LOW_HP_THRESHOLD: float = 30.0
 
+## Services come from GameService (see GameService._inject_into_new_nodes); null when run without it.
+var _checkpoints: CheckpointManager
+
+func inject_services(registry: Node) -> void:
+	_checkpoints = registry.get_service(&"checkpoint") as CheckpointManager
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_setup_audio_buses()
@@ -53,7 +60,7 @@ func _ready() -> void:
 	_create_ambience_player()
 	
 	# Connect to CheckpointManager if available
-	var cm = get_node_or_null("/root/CheckpointManager")
+	var cm = _checkpoints
 	if cm and cm.has_signal("checkpoint_activated"):
 		cm.checkpoint_activated.connect(_on_checkpoint_activated)
 	

@@ -7,6 +7,7 @@ func _init() -> void:
 	call_deferred("_run_all_tests")
 
 func _run_all_tests() -> void:
+	await TestServices.start(self)
 	var passed = 0
 	var failed = 0
 	
@@ -575,11 +576,11 @@ func test_hud_customization_persistence() -> bool:
 	return true
 
 func test_gyroscope_aim() -> bool:
-	var im = root.get_node_or_null("InputManager")
+	var im = TestServices.get_service(self, &"input")
 	if not im:
 		return false
 	
-	var sm = root.get_node_or_null("SettingsManager")
+	var sm = TestServices.get_service(self, &"settings")
 	if sm:
 		sm.set_setting("gyro_mode", 0) # Off
 		sm.set_setting("gyro_sensitivity", 1.0)

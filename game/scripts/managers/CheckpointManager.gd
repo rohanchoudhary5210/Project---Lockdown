@@ -1,3 +1,4 @@
+class_name CheckpointManager
 extends Node
 
 ## Project: Lockdown - Checkpoint & Respawn Manager (Milestone 6)
@@ -29,6 +30,14 @@ var current_checkpoint_order: int = -1
 var is_dying: bool = false
 var is_respawning: bool = false
 var _invulnerability_timer: float = 0.0
+
+## Services come from GameService (see GameService._inject_into_new_nodes); null when run without it.
+var _input_manager: InputManager
+var _time_manager: TimeManager
+
+func inject_services(registry: Node) -> void:
+	_input_manager = registry.get_service(&"input") as InputManager
+	_time_manager = registry.get_service(&"time") as TimeManager
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -160,7 +169,7 @@ func handle_player_death() -> void:
 	player_death_started.emit()
 	
 	# Abort any active hitstop or pause
-	var tm = get_node_or_null("/root/TimeManager")
+	var tm = _time_manager
 	if tm and tm.has_method("reset_time_scale"):
 		tm.reset_time_scale()
 	if get_tree().paused:
@@ -179,7 +188,7 @@ func handle_player_death() -> void:
 	Engine.time_scale = 1.0
 	
 	# Enable Death Screen and release mouse
-	var im = get_node_or_null("/root/InputManager")
+	var im = _input_manager
 	if im:
 		im.is_death_screen_active = true
 		im.mouse_captured = false
@@ -196,7 +205,7 @@ func respawn_player() -> void:
 		current_checkpoint_order = snap.checkpoint_order
 	
 	# Abort hitstop and ensure time scale 1.0
-	var tm = get_node_or_null("/root/TimeManager")
+	var tm = _time_manager
 	if tm and tm.has_method("reset_time_scale"):
 		tm.reset_time_scale()
 	Engine.time_scale = 1.0
@@ -269,7 +278,7 @@ func respawn_player() -> void:
 				c.set_rescued_state(was_rescued)
 	
 	# 8. Recapture mouse & re-enable input
-	var im = get_node_or_null("/root/InputManager")
+	var im = _input_manager
 	if im:
 		im.is_death_screen_active = false
 		im.capture_mouse()

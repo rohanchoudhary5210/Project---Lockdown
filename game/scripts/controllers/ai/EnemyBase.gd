@@ -42,6 +42,14 @@ var _step_distance_counter: float = 0.0
 var _death_tween: Tween = null
 const STEP_DISTANCE: float = 2.2
 
+## Services come from GameService (see GameService._inject_into_new_nodes); null when run without it.
+var _noise_bus: NoiseBus
+var _spatial_audio: SpatialAudioManager
+
+func inject_services(registry: Node) -> void:
+	_noise_bus = registry.get_service(&"noise") as NoiseBus
+	_spatial_audio = registry.get_service(&"spatial_audio") as SpatialAudioManager
+
 func _ready() -> void:
 	if not is_in_group("enemies"):
 		add_to_group("enemies")
@@ -104,7 +112,7 @@ func _physics_process(delta: float) -> void:
 			_step_distance_counter += horiz_speed * delta
 			if _step_distance_counter >= STEP_DISTANCE:
 				_step_distance_counter = 0.0
-				var am = get_node_or_null("/root/SpatialAudio")
+				var am = _spatial_audio
 				if am and am.has_method("play_footstep_3d"):
 					am.play_footstep_3d(global_position)
 

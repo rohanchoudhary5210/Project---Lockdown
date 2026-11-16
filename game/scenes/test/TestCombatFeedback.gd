@@ -16,6 +16,7 @@ func _init() -> void:
 	call_deferred("_run_tests")
 
 func _run_tests() -> void:
+	await TestServices.start(self)
 	print("\n=== STARTING COMBAT FEEDBACK TEST SUITE ===\n")
 	await _run("Test 1: Bullets alert the enemy to the shooter", _test_bullet_source)
 	await _run("Test 2: damage_dealt on hit and kill, not on walls", _test_damage_dealt)
@@ -214,7 +215,7 @@ func _test_objective() -> bool:
 	return ok
 
 func _test_haptics() -> bool:
-	var sm = root.get_node("SettingsManager")
+	var sm = TestServices.get_service(self, &"settings")
 	var old: bool = sm.haptics
 	sm.set_setting("haptics", false, false)
 	sm.vibrate(20, 0.5)

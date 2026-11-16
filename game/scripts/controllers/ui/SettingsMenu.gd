@@ -39,6 +39,12 @@ signal back_pressed()
 
 var _is_updating: bool = false
 
+## Services come from GameService (see GameService._inject_into_new_nodes); null when run without it.
+var _settings: SettingsManager
+
+func inject_services(registry: Node) -> void:
+	_settings = registry.get_service(&"settings") as SettingsManager
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_setup_graphics_options()
@@ -125,17 +131,17 @@ func _connect_signals() -> void:
 		back_button.pressed.connect(_on_back_pressed)
 
 func _on_slider_drag_ended(_val_changed: bool) -> void:
-	var sm = get_node_or_null("/root/SettingsManager")
+	var sm = _settings
 	if sm:
 		sm.save_settings()
 
 func _exit_tree() -> void:
-	var sm = get_node_or_null("/root/SettingsManager")
+	var sm = _settings
 	if sm:
 		sm.save_settings()
 
 func refresh_values() -> void:
-	var sm = get_node_or_null("/root/SettingsManager")
+	var sm = _settings
 	if not sm:
 		return
 	
@@ -255,7 +261,7 @@ func _on_sens_changed(val: float) -> void:
 		return
 	if sens_value:
 		sens_value.text = "%.4f" % val
-	var sm = get_node_or_null("/root/SettingsManager")
+	var sm = _settings
 	if sm:
 		sm.set_setting("mouse_sensitivity", val, false)
 
@@ -264,14 +270,14 @@ func _on_look_changed(val: float) -> void:
 		return
 	if look_value:
 		look_value.text = "%.1f" % val
-	var sm = get_node_or_null("/root/SettingsManager")
+	var sm = _settings
 	if sm:
 		sm.set_setting("look_speed", val, false)
 
 func _on_invert_y_toggled(pressed: bool) -> void:
 	if _is_updating:
 		return
-	var sm = get_node_or_null("/root/SettingsManager")
+	var sm = _settings
 	if sm:
 		sm.set_setting("invert_y", pressed, true)
 
@@ -280,14 +286,14 @@ func _on_fov_changed(val: float) -> void:
 		return
 	if fov_value:
 		fov_value.text = "%d°" % int(val)
-	var sm = get_node_or_null("/root/SettingsManager")
+	var sm = _settings
 	if sm:
 		sm.set_setting("fov", val, false)
 
 func _on_haptics_toggled(pressed: bool) -> void:
 	if _is_updating:
 		return
-	var sm = get_node_or_null("/root/SettingsManager")
+	var sm = _settings
 	if sm:
 		sm.set_setting("haptics", pressed, true)
 		if pressed:
@@ -296,7 +302,7 @@ func _on_haptics_toggled(pressed: bool) -> void:
 func _on_crouch_toggled(pressed: bool) -> void:
 	if _is_updating:
 		return
-	var sm = get_node_or_null("/root/SettingsManager")
+	var sm = _settings
 	if sm:
 		sm.set_setting("crouch_toggle", pressed, true)
 
@@ -305,14 +311,14 @@ func _on_volume_changed(val: float) -> void:
 		return
 	if volume_value:
 		volume_value.text = "%d%%" % int(val)
-	var sm = get_node_or_null("/root/SettingsManager")
+	var sm = _settings
 	if sm:
 		sm.set_setting("master_volume", val / 100.0, false)
 
 func _on_graphics_selected(idx: int) -> void:
 	if _is_updating:
 		return
-	var sm = get_node_or_null("/root/SettingsManager")
+	var sm = _settings
 	if sm:
 		var q = "Low" if idx == 1 else "High"
 		sm.set_setting("graphics_quality", q, true)
@@ -320,7 +326,7 @@ func _on_graphics_selected(idx: int) -> void:
 func _on_touch_selected(idx: int) -> void:
 	if _is_updating:
 		return
-	var sm = get_node_or_null("/root/SettingsManager")
+	var sm = _settings
 	if sm:
 		sm.set_setting("touch_controls_mode", idx, true)
 
@@ -329,14 +335,14 @@ func _on_touch_recoil_changed(val: float) -> void:
 		return
 	if touch_recoil_value:
 		touch_recoil_value.text = "%.2f" % val
-	var sm = get_node_or_null("/root/SettingsManager")
+	var sm = _settings
 	if sm:
 		sm.set_setting("touch_recoil", val, false)
 
 func _on_aim_assist_selected(idx: int) -> void:
 	if _is_updating:
 		return
-	var sm = get_node_or_null("/root/SettingsManager")
+	var sm = _settings
 	if sm:
 		var mode = "Off"
 		if idx == 1:
@@ -350,7 +356,7 @@ func _on_touch_sens_h_changed(val: float) -> void:
 		return
 	if touch_sens_h_value:
 		touch_sens_h_value.text = "%.4f" % val
-	var sm = get_node_or_null("/root/SettingsManager")
+	var sm = _settings
 	if sm:
 		sm.set_setting("touch_sens_h", val, false)
 
@@ -359,7 +365,7 @@ func _on_touch_sens_v_changed(val: float) -> void:
 		return
 	if touch_sens_v_value:
 		touch_sens_v_value.text = "%.4f" % val
-	var sm = get_node_or_null("/root/SettingsManager")
+	var sm = _settings
 	if sm:
 		sm.set_setting("touch_sens_v", val, false)
 
@@ -368,14 +374,14 @@ func _on_touch_smoothing_changed(val: float) -> void:
 		return
 	if touch_smoothing_value:
 		touch_smoothing_value.text = "%.2f" % val
-	var sm = get_node_or_null("/root/SettingsManager")
+	var sm = _settings
 	if sm:
 		sm.set_setting("touch_smoothing", val, false)
 
 func _on_gyro_selected(idx: int) -> void:
 	if _is_updating:
 		return
-	var sm = get_node_or_null("/root/SettingsManager")
+	var sm = _settings
 	if sm:
 		sm.set_setting("gyro_mode", idx, true)
 
@@ -384,7 +390,7 @@ func _on_gyro_sens_changed(val: float) -> void:
 		return
 	if gyro_sens_value:
 		gyro_sens_value.text = "%.1fx" % val
-	var sm = get_node_or_null("/root/SettingsManager")
+	var sm = _settings
 	if sm:
 		sm.set_setting("gyro_sensitivity", val, false)
 
@@ -402,12 +408,12 @@ func _on_customize_controls_pressed() -> void:
 func _on_debug_toggled(pressed: bool) -> void:
 	if _is_updating:
 		return
-	var sm = get_node_or_null("/root/SettingsManager")
+	var sm = _settings
 	if sm:
 		sm.set_setting("show_ai_debug", pressed, true)
 
 func _on_back_pressed() -> void:
-	var sm = get_node_or_null("/root/SettingsManager")
+	var sm = _settings
 	if sm:
 		sm.save_settings()
 	back_pressed.emit()

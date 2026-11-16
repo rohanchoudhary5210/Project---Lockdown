@@ -36,6 +36,16 @@ var _last_vp_size: Vector2 = Vector2.ZERO
 var damage_indicator: DamageDirectionIndicator = null
 var objective_display: ObjectiveDisplay = null
 
+## Services come from GameService (see GameService._inject_into_new_nodes); null when run without it.
+var _checkpoints: CheckpointManager
+var _input_manager: InputManager
+var _subtitles: SubtitleManager
+
+func inject_services(registry: Node) -> void:
+	_checkpoints = registry.get_service(&"checkpoint") as CheckpointManager
+	_input_manager = registry.get_service(&"input") as InputManager
+	_subtitles = registry.get_service(&"subtitle") as SubtitleManager
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	if interact_container:
@@ -213,13 +223,13 @@ func _connect_signals() -> void:
 			player.rescue_progress_changed.connect(set_rescue_progress)
 	
 	# Connect InputManager pause
-	var im: Node = get_node_or_null("/root/InputManager")
+	var im: Node = _input_manager
 	if im and im.has_signal("pause_toggled"):
 		if not im.pause_toggled.is_connected(_on_pause_toggled):
 			im.pause_toggled.connect(_on_pause_toggled)
 	
 	# Connect CheckpointManager
-	var cm: Node = get_node_or_null("/root/CheckpointManager")
+	var cm: Node = _checkpoints
 	if cm:
 		if cm.has_signal("checkpoint_activated") and not cm.checkpoint_activated.is_connected(_on_checkpoint_activated):
 			cm.checkpoint_activated.connect(_on_checkpoint_activated)
@@ -233,7 +243,7 @@ func _connect_signals() -> void:
 			cm.invulnerability_changed.connect(_on_invulnerability_changed)
 	
 	# Connect SubtitleManager
-	var sm: Node = get_node_or_null("/root/SubtitleManager")
+	var sm: Node = _subtitles
 	if sm:
 		if sm.has_signal("subtitle_started") and not sm.subtitle_started.is_connected(_on_subtitle_started):
 			sm.subtitle_started.connect(_on_subtitle_started)
@@ -271,7 +281,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _on_restart_pressed() -> void:
 	if not _death_screen_input_ready:
 		return
-	var cm = get_node_or_null("/root/CheckpointManager")
+	var cm = _checkpoints
 	if cm and cm.has_method("respawn_player"):
 		cm.respawn_player()
 
@@ -322,7 +332,7 @@ func _on_death_screen_shown() -> void:
 	if restart_button:
 		restart_button.disabled = true
 	if death_hint:
-		var im = get_node_or_null("/root/InputManager")
+		var im = _input_manager
 		var interact_key = im.get_action_key_label("interact") if im else "E"
 		var jump_key = im.get_action_key_label("jump") if im else "Space"
 		death_hint.text = "Press [%s] or [%s] to restart" % [interact_key, jump_key]

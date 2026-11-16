@@ -11,6 +11,12 @@ var _imm_mesh: ImmediateMesh = null
 var _cone_material: StandardMaterial3D = null
 var _target_material: StandardMaterial3D = null
 
+## Services come from GameService (see GameService._inject_into_new_nodes); null when run without it.
+var _debug_tools: DebugTools
+
+func inject_services(registry: Node) -> void:
+	_debug_tools = registry.get_service(&"debug") as DebugTools
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_player = get_parent() as Player
@@ -41,7 +47,7 @@ func _ready() -> void:
 	
 	_update_visibility()
 	
-	var dt = get_node_or_null("/root/DebugTools")
+	var dt = _debug_tools
 	if dt and dt.has_signal("ai_debug_overlay_toggled"):
 		dt.ai_debug_overlay_toggled.connect(_on_overlay_toggled)
 

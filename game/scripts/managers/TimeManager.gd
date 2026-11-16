@@ -1,3 +1,4 @@
+class_name TimeManager
 extends Node
 
 ## TimeManager handles hitstop (micro time freeze on impacts) and global time dilation.
@@ -10,6 +11,12 @@ var _is_hitstop_active: bool = false
 var _active_hitstop_scale: float = 0.05
 var _remaining_hitstop_ms: int = 0
 
+## Services come from GameService (see GameService._inject_into_new_nodes); null when run without it.
+var _input_manager: InputManager
+
+func inject_services(registry: Node) -> void:
+	_input_manager = registry.get_service(&"input") as InputManager
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	set_process(false)
@@ -17,7 +24,7 @@ func _ready() -> void:
 	call_deferred("_connect_input_manager")
 
 func _connect_input_manager() -> void:
-	var im: Node = get_node_or_null("/root/InputManager")
+	var im: Node = _input_manager
 	if im and im.has_signal("pause_toggled"):
 		im.pause_toggled.connect(_on_pause_toggled)
 

@@ -12,6 +12,14 @@ extends Label
 var _show_timer: float = 0.0
 var _paused: bool = false
 
+## Services come from GameService (see GameService._inject_into_new_nodes); null when run without it.
+var _checkpoints: CheckpointManager
+var _input_manager: InputManager
+
+func inject_services(registry: Node) -> void:
+	_checkpoints = registry.get_service(&"checkpoint") as CheckpointManager
+	_input_manager = registry.get_service(&"input") as InputManager
+
 func _ready() -> void:
 	mouse_filter = MOUSE_FILTER_IGNORE
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -34,10 +42,10 @@ func _connect_level() -> void:
 	for c in get_tree().get_nodes_in_group("captives"):
 		if c.has_signal("rescued") and not c.rescued.is_connected(_on_changed):
 			c.rescued.connect(_on_changed)
-	var cm = get_node_or_null("/root/CheckpointManager")
+	var cm = _checkpoints
 	if cm and cm.has_signal("player_respawned") and not cm.player_respawned.is_connected(_on_changed):
 		cm.player_respawned.connect(_on_changed)
-	var im = get_node_or_null("/root/InputManager")
+	var im = _input_manager
 	if im and im.has_signal("pause_toggled") and not im.pause_toggled.is_connected(_on_pause_toggled):
 		im.pause_toggled.connect(_on_pause_toggled)
 	refresh()

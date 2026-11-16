@@ -119,11 +119,11 @@ func _fire_at_player(player: CharacterBody3D) -> void:
 	_spawn_tracer(shoot_origin, hit_pos)
 	
 	# 4. Broadcast acoustic noise to NoiseBus so other enemies hear gunshots
-	var nb = get_node_or_null("/root/NoiseBus")
+	var nb = _noise_bus
 	if nb:
 		nb.emit_noise(global_position, enemy_data.gunshot_noise_radius, self, "gunshot")
 	
-	var am = get_node_or_null("/root/SpatialAudio")
+	var am = _spatial_audio
 	if am and am.has_method("play_rifle_shot"):
 		am.play_rifle_shot(shoot_origin)
 	
