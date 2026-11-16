@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="MeleeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://game/scripts/data/MeleeData.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+damage = 35.0
+attack_range = 1.8
+cooldown = 0.6
+attack_noise_radius = 4.0
+block_damage_reduction = 0.70
+parry_window = 0.25
+parry_stun_duration = 1.5
+melee_hitstop = 0.06
+parry_hitstop = 0.08
+camera_trauma = 0.35
+camera_fov_kick = 3.0

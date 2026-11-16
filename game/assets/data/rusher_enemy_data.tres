@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3 uid="uid://crusher_enemy_data_001"]
+
+[ext_resource type="Script" path="res://game/scripts/data/EnemyData.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+enemy_name = "Rusher"
+max_health = 100.0
+bullet_damage_multiplier = 0.6
+move_speed_patrol = 2.2
+move_speed_chase = 5.5
+search_duration = 8.0
+vision_range = 20.0
+vision_fov_degrees = 90.0
+detection_time_min = 0.4
+detection_time_max = 1.2
+crouch_detection_multiplier = 0.5
+detection_decay_rate = 1.0
+damage_per_shot = 0.0
+fire_interval = 0.0
+reaction_delay = 0.0
+base_spread_rad = 0.0
+player_moving_spread_mult = 1.0
+distance_spread_factor = 0.0
+gunshot_noise_radius = 0.0
+melee_damage = 20.0
+attack_range = 1.6
+telegraph_duration = 0.4
+attack_recovery_time = 0.8
+flinch_duration = 0.15
+flinch_cooldown = 0.6
+stun_vulnerability_multiplier = 1.5

@@ -1,0 +1,11 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://cmat_muzzle_flash_proc_001"]
+
+[ext_resource type="Shader" path="res://game/assets/shaders/muzzle_flash.gdshader" id="1_shader"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_shader")
+shader_parameter/core_color = Color(1, 0.96, 0.8, 1)
+shader_parameter/edge_color = Color(1, 0.4, 0.05, 1)
+shader_parameter/energy = 4.5
+shader_parameter/spike_count = 5

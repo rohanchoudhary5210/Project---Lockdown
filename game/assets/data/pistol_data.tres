@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://game/scripts/data/WeaponData.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+weapon_name = "Pistol"
+damage = 25.0
+max_range = 100.0
+fire_interval = 0.18
+gunshot_noise_radius = 25.0
+mag_capacity = 12
+reserve_capacity = 48
+max_reserve = 72
+starting_ammo_in_mag = 12
+starting_reserve_ammo = 48
+reload_time = 1.4
+auto_reload_on_empty = true
+recoil_pitch = 0.035
+recoil_yaw_random = 0.01
+recoil_recovery_speed = 10.0
+recoil_multiplier_touch = 0.45
+viewmodel_kick_pos = Vector3(0, 0.02, 0.08)
+viewmodel_kick_rot = Vector3(0.12, 0, 0)
+viewmodel_recovery_speed = 14.0
+hitstop_duration = 0.03
+camera_trauma = 0.16
+camera_fov_kick = 1.4

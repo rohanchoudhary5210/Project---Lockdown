@@ -1,3 +1,43 @@
-# Godot 4+ specific ignores
+# ── Godot ──────────────────────────────────────────────────────────────────
 .godot/
 /android/
+/ios/
+
+# ── Node.js / Firebase ──────────────────────────────────────────────────────
+node_modules/
+dist/
+lib/
+*.js.map
+.npm/
+
+# ── Environment & Secrets ───────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+service-account.json
+*.pem
+*.key
+
+# ── Firebase ────────────────────────────────────────────────────────────────
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+database-debug.log
+pubsub-debug.log
+
+# ── OS ──────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── IDE ─────────────────────────────────────────────────────────────────────
+.vscode/settings.json
+.idea/
+*.suo
+*.user
+
+
+
+# Kept tracked on purpose (unlike the template): .uid files hold Godot 4.4+ resource IDs, and
+# export_presets.cfg holds the Android export settings.

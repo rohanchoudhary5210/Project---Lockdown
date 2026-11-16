@@ -1,0 +1,36 @@
+[gd_scene load_steps=7 format=3 uid="uid://cmelee_visual_001"]
+
+[ext_resource type="Script" path="res://game/scenes/gameplay/weapons/MeleeVisual.gd" id="1_script"]
+[ext_resource type="Material" uid="uid://cmat_gunmetal_001" path="res://game/assets/materials/placeholder/mat_gunmetal.tres" id="2_metal"]
+[ext_resource type="Material" uid="uid://cmat_gun_grip_001" path="res://game/assets/materials/placeholder/mat_gun_grip.tres" id="3_grip"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_blade"]
+material = ExtResource("2_metal")
+size = Vector3(0.015, 0.04, 0.22)
+
+[sub_resource type="BoxMesh" id="BoxMesh_handle"]
+material = ExtResource("3_grip")
+size = Vector3(0.025, 0.035, 0.12)
+
+[sub_resource type="BoxMesh" id="BoxMesh_guard"]
+material = ExtResource("2_metal")
+size = Vector3(0.04, 0.015, 0.03)
+
+[node name="MeleeVisual" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="KnifeModel" type="Node3D" parent="."]
+
+[node name="Blade" type="MeshInstance3D" parent="KnifeModel"]
+layers = 2
+mesh = SubResource("BoxMesh_blade")
+
+[node name="Handle" type="MeshInstance3D" parent="KnifeModel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.14)
+layers = 2
+mesh = SubResource("BoxMesh_handle")
+
+[node name="Guard" type="MeshInstance3D" parent="KnifeModel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.08)
+layers = 2
+mesh = SubResource("BoxMesh_guard")

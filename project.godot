@@ -11,20 +11,21 @@ config_version=5
 [application]
 
 config/name="Project: Lockdown"
-run/main_scene="res://scenes/ui/main_menu.tscn"
+run/main_scene="res://game/scenes/boot/Boot.tscn"
 config/features=PackedStringArray("4.7", "Mobile")
 config/icon="res://icon.svg"
 
 [autoload]
 
-InputManager="*res://scripts/autoload/input_manager.gd"
-TimeManager="*res://scripts/autoload/time_manager.gd"
-DebugTools="*res://scripts/autoload/debug_tools.gd"
-NoiseBus="*res://scripts/autoload/noise_bus.gd"
-CheckpointManager="*res://scripts/autoload/checkpoint_manager.gd"
-SubtitleManager="*res://scripts/autoload/subtitle_manager.gd"
-SettingsManager="*res://scripts/autoload/settings_manager.gd"
-AudioManager="*res://scripts/autoload/audio_manager.gd"
+ServiceRegistry="*res://game/autoloads/ServiceRegistry.gd"
+InputManager="*res://game/scripts/managers/InputManager.gd"
+TimeManager="*res://game/scripts/managers/TimeManager.gd"
+DebugTools="*res://game/scripts/managers/DebugTools.gd"
+NoiseBus="*res://game/scripts/managers/NoiseBus.gd"
+CheckpointManager="*res://game/scripts/managers/CheckpointManager.gd"
+SubtitleManager="*res://game/scripts/managers/SubtitleManager.gd"
+SettingsManager="*res://game/scripts/managers/SettingsManager.gd"
+SpatialAudio="*res://game/scripts/managers/SpatialAudioManager.gd"
 
 [display]
 
