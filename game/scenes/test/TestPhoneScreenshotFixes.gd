@@ -297,10 +297,8 @@ func test_crosshair_centered() -> bool:
 		return false
 	
 	var crosshair = hud.get_node("Crosshair") as Control
-	var pause_menu = hud.get_node("PauseMenu") as PauseMenu
-	var death_container = hud.get_node("DeathContainer") as Control
-	var death_vbox = death_container.get_node("Center/VBox") as Control
-	var menu_panel = pause_menu.get_node("%MenuPanel/Panel") as Control
+	# Pause menu and death screen are UIManager panels (UIManager is a CanvasLayer on the same viewport)
+	var ui: UIManager = TestServices.get_service(self, &"ui")
 	var touch_controls = hud.get_node_or_null("TouchControls") as Control
 	
 	var resolutions = [
@@ -325,7 +323,9 @@ func test_crosshair_centered() -> bool:
 			return false
 		
 		# 2. Pause Menu full screen & center check
-		pause_menu.open_menu()
+		ui.push_packed(load("res://game/scenes/ui/mfw/PauseMenu.tscn"))
+		var pause_menu := ui.current() as PauseMenu
+		var menu_panel = pause_menu.get_node("%MenuPanel/Panel") as Control
 		await process_frame
 		await process_frame
 		if (pause_menu.size - vp_rect.size).length() > 1.0:
@@ -337,10 +337,12 @@ func test_crosshair_centered() -> bool:
 			printerr("PauseMenu panel not centered at res %v! Pos: %v, Expected: %v" % [res, pm_center, expected_center])
 			level.queue_free()
 			return false
-		pause_menu.close_menu()
+		ui.pop()
 		
 		# 3. Death Screen full screen & center check
-		death_container.visible = true
+		ui.push_packed(load("res://game/scenes/ui/mfw/DeathScreen.tscn"))
+		var death_container := ui.current() as DeathScreen
+		var death_vbox = death_container.get_node("Center/VBox") as Control
 		await process_frame
 		await process_frame
 		if (death_container.size - vp_rect.size).length() > 1.0:
@@ -352,7 +354,7 @@ func test_crosshair_centered() -> bool:
 			printerr("DeathContainer VBox not centered at res %v! Pos: %v, Expected: %v" % [res, death_center, expected_center])
 			level.queue_free()
 			return false
-		death_container.visible = false
+		ui.pop()
 		
 		# 4. TouchControls full screen check
 		if touch_controls:

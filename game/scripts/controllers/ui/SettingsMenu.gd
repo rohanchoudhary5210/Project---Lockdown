@@ -1,9 +1,10 @@
 class_name SettingsMenu
-extends Control
+extends UIController
 
 ## Project: Lockdown - Settings Menu (Milestone 9)
 ## Allows tuning of sensitivity, look speed, FOV, crouch mode, volume, touch controls, and debug options.
-## Changes apply immediately and save to user://settings.cfg.
+## Changes apply immediately and are saved through SettingsManager.
+## A UIManager panel: pushed by Home and the pause menu, Back pops it.
 
 signal back_pressed()
 
@@ -43,10 +44,10 @@ var _is_updating: bool = false
 var _settings: SettingsManager
 
 func inject_services(registry: Node) -> void:
+	super.inject_services(registry)
 	_settings = registry.get_service(&"settings") as SettingsManager
 
-func _ready() -> void:
-	process_mode = Node.PROCESS_MODE_ALWAYS
+func _on_ready() -> void:
 	_setup_graphics_options()
 	_setup_touch_options()
 	_setup_aim_assist_options()
@@ -399,10 +400,9 @@ func _on_customize_controls_pressed() -> void:
 	if hud:
 		var tc = hud.find_child("TouchControls", true, false)
 		if tc and tc.has_method("enter_edit_mode"):
-			var pm = hud.find_child("PauseMenu", true, false)
-			if pm:
-				pm.visible = false
-			visible = false
+			# Close the pause/settings panels while editing; the game stays paused until resumed
+			_ui_manager.pop_to_root()
+			_ui_manager.pop()
 			tc.enter_edit_mode()
 
 func _on_debug_toggled(pressed: bool) -> void:
@@ -417,6 +417,8 @@ func _on_back_pressed() -> void:
 	if sm:
 		sm.save_settings()
 	back_pressed.emit()
+	if _ui_manager and _ui_manager.current() == self:
+		close()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if visible and event.is_action_pressed("pause"):

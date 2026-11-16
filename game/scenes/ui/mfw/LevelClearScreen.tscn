@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://clevel_clear_screen_001"]
+[gd_scene format=3 uid="uid://clevel_clear_screen_001"]
 
 [ext_resource type="Script" path="res://game/scripts/controllers/ui/LevelClearScreen.gd" id="1_script"]
 
@@ -14,12 +14,18 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[node name="LevelClearScreen" type="CanvasLayer"]
+[node name="LevelClearScreen" type="Control"]
 process_mode = 3
-layer = 15
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_script")
 
 [node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -28,6 +34,7 @@ grow_vertical = 2
 color = Color(0.03, 0.04, 0.06, 0.75)
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0

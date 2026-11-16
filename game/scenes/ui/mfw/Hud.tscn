@@ -1,6 +1,8 @@
-[gd_scene load_steps=12 format=3 uid="uid://chud_main_001"]
+[gd_scene format=3 uid="uid://chud_main_001"]
 
 [ext_resource type="Script" path="res://game/scripts/controllers/ui/Hud.gd" id="1_hud"]
+[ext_resource type="Script" path="res://game/scripts/controllers/ui/DamageDirectionIndicator.gd" id="10_dmgdir"]
+[ext_resource type="Script" path="res://game/scripts/controllers/ui/ObjectiveDisplay.gd" id="11_objective"]
 [ext_resource type="Material" uid="uid://cmat_vignette_proc_001" path="res://game/assets/materials/procedural/mat_damage_vignette.tres" id="2_vignette"]
 [ext_resource type="Script" path="res://game/scripts/controllers/ui/ProgressRing.gd" id="2_ring"]
 [ext_resource type="Theme" uid="uid://clockdown_theme_proc_001" path="res://game/assets/ui/lockdown_theme.tres" id="3_theme"]
@@ -8,7 +10,6 @@
 [ext_resource type="Script" path="res://game/scripts/controllers/ui/HealthIcon.gd" id="5_hicon"]
 [ext_resource type="Script" path="res://game/scripts/controllers/ui/AmmoIcon.gd" id="6_aicon"]
 [ext_resource type="Script" path="res://game/scripts/controllers/ui/InteractIcon.gd" id="7_iicon"]
-[ext_resource type="PackedScene" path="res://game/scenes/ui/mfw/PauseMenu.tscn" id="8_pause"]
 [ext_resource type="PackedScene" path="res://game/scenes/ui/mfw/TouchControls.tscn" id="9_touch"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_health_bg"]
@@ -48,6 +49,16 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(1, 1, 1, 1)
 
+[node name="DamageDirectionIndicator" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("10_dmgdir")
+
 [node name="Crosshair" type="Control" parent="."]
 layout_mode = 1
 anchors_preset = 8
@@ -75,6 +86,26 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("2_ring")
+
+[node name="ObjectiveDisplay" type="Label" parent="."]
+process_mode = 3
+modulate = Color(1, 1, 1, 0)
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -320.0
+offset_top = 114.0
+offset_right = 320.0
+offset_bottom = 164.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.95, 0.93, 0.88, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 18
+horizontal_alignment = 1
+script = ExtResource("11_objective")
 
 [node name="InteractContainer" type="PanelContainer" parent="."]
 layout_mode = 1
@@ -202,16 +233,6 @@ text = "12 / 48"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="PauseMenu" parent="." instance=ExtResource("8_pause")]
-unique_name_in_owner = true
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
 [node name="TouchControls" parent="." instance=ExtResource("9_touch")]
 unique_name_in_owner = true
 layout_mode = 1
@@ -280,51 +301,6 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 color = Color(0, 0, 0, 1)
-
-[node name="DeathContainer" type="Control" parent="."]
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="Center" type="CenterContainer" parent="DeathContainer"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="VBox" type="VBoxContainer" parent="DeathContainer/Center"]
-layout_mode = 2
-theme_override_constants/separation = 24
-alignment = 1
-
-[node name="Title" type="Label" parent="DeathContainer/Center/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.15, 0.15, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
-theme_override_constants/shadow_offset_x = 2
-theme_override_constants/shadow_offset_y = 3
-theme_override_font_sizes/font_size = 56
-text = "YOU DIED"
-horizontal_alignment = 1
-
-[node name="RestartButton" type="Button" parent="DeathContainer/Center/VBox"]
-custom_minimum_size = Vector2(260, 48)
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "Restart from Checkpoint"
-
-[node name="Hint" type="Label" parent="DeathContainer/Center/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 0.8)
-theme_override_font_sizes/font_size = 13
-text = "Press [E] or [Space] to restart"
-horizontal_alignment = 1
 
 [node name="SubtitleContainer" type="PanelContainer" parent="."]
 visible = false

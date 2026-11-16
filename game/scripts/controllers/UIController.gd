@@ -31,7 +31,8 @@ func inject_dependencies(ui_manager: UIManager, audio: AudioManager, game_manage
 	_ui_manager = ui_manager
 	_audio = audio
 	_game_manager = game_manager
-	if is_inside_tree() and not _initialized:
+	# is_node_ready(), not is_inside_tree(): injected on entering the tree, _on_ready() must still wait for _ready()
+	if is_node_ready() and not _initialized:
 		_initialized = true
 		_on_ready()
 

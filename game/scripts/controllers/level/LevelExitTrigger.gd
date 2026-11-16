@@ -9,12 +9,18 @@ extends Area3D
 
 var _start_time: float = 0.0
 var _cleared: bool = false
-var _screen_instance: CanvasLayer = null
+var _screen_instance: LevelClearScreen = null
 
 ## Services come from GameService (see GameService._inject_into_new_nodes); null when run without it.
 var _input_manager: InputManager
+var _ui: UIManager
+var _game: GameManager
+var _bus: Node
 
 func inject_services(registry: Node) -> void:
+	_ui = registry.get_service(&"ui") as UIManager
+	_game = registry.get_service(&"game") as GameManager
+	_bus = registry.get_service(&"bus")
 	_input_manager = registry.get_service(&"input") as InputManager
 
 func _ready() -> void:
@@ -24,9 +30,10 @@ func _ready() -> void:
 	_start_time = Time.get_ticks_msec() / 1000.0
 
 func _exit_tree() -> void:
-	if is_instance_valid(_screen_instance):
-		_screen_instance.queue_free()
-		_screen_instance = null
+	# Leaving the level with the panel still open (not via its Restart): take it off the UI stack
+	if is_instance_valid(_screen_instance) and _ui and _ui.current() == _screen_instance:
+		_ui.pop()
+	_screen_instance = null
 
 func _on_body_entered(body: Node3D) -> void:
 	if _cleared:
@@ -53,12 +60,16 @@ func trigger_clear() -> void:
 		im.is_level_clear_active = true
 		im.mouse_captured = false
 	
+	if _game:
+		_game.pause()
 	get_tree().paused = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	if _bus:
+		_bus.level_completed.emit(String(get_tree().current_scene.name) if get_tree().current_scene else "")
 	
 	if not _screen_instance and level_clear_screen_scene:
-		_screen_instance = level_clear_screen_scene.instantiate() as CanvasLayer
-		get_tree().root.add_child(_screen_instance)
+		_ui.push_packed(level_clear_screen_scene)
+		_screen_instance = _ui.current() as LevelClearScreen
 	
 	if _screen_instance and _screen_instance.has_method("show_screen"):
 		_screen_instance.show_screen(elapsed, rescued)

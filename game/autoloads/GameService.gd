@@ -128,15 +128,13 @@ func _add_lockdown_services() -> void:
 
 ## Pattern 2 auto-wiring for every node, not only scenes loaded by SceneManager: runtime-spawned
 ## nodes and scenes started directly (editor F6, tests) get inject_services() on entering the tree,
-## i.e. before their _ready(). Template controllers keep their own inject-then-_on_ready lifecycle.
+## i.e. before their _ready(). Controllers still run _on_ready() only once they are ready.
 func _inject_into_new_nodes() -> void:
 	get_tree().node_added.connect(_on_node_added)
 	for node in get_tree().root.find_children("*", "", true, false):
 		_on_node_added(node)
 
 func _on_node_added(node: Node) -> void:
-	if node is UIController or node is PlayerController:
-		return
 	if node.has_method("inject_services") and node.get_parent() != self:
 		node.inject_services(registry)
 

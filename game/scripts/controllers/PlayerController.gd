@@ -38,7 +38,8 @@ func inject_dependencies(game_manager: GameManager, audio: AudioManager, save: S
 	_save = save
 	_logger = logger
 	_bus = bus
-	if is_inside_tree() and not _initialized:
+	# is_node_ready(), not is_inside_tree(): injected on entering the tree, _on_ready() must still wait for _ready()
+	if is_node_ready() and not _initialized:
 		_initialized = true
 		set_physics_process(is_visible_in_tree())
 		_on_ready()

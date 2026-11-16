@@ -13,9 +13,6 @@ extends Control
 
 var _hits: Array[Dictionary] = [] # { source: Node3D, last_pos: Vector3, time_left: float }
 
-func _ready() -> void:
-	mouse_filter = MOUSE_FILTER_IGNORE
-	set_anchors_preset(PRESET_FULL_RECT)
 
 ## Adds (or refreshes) an arc for this attacker. Hits with no 3D source show nothing.
 func add_hit(source: Node) -> void:

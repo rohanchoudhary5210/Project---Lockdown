@@ -1,9 +1,10 @@
 class_name LevelClearScreen
-extends CanvasLayer
+extends UIController
 
 ## Project: Lockdown - Level Clear Screen (Milestone 8)
 ## Shown when player reaches the exit trigger at the top of Stair B.
 ## Displays elapsed time, teammate rescue status, and restart button.
+## A UIManager panel pushed by LevelExitTrigger.
 
 signal restart_requested()
 
@@ -17,19 +18,18 @@ var _can_restart: bool = false
 ## Services come from GameService (see GameService._inject_into_new_nodes); null when run without it.
 var _checkpoints: CheckpointManager
 var _input_manager: InputManager
+var _scene: SceneManager
 
 func inject_services(registry: Node) -> void:
+	super.inject_services(registry)
+	_scene = registry.get_service(&"scene") as SceneManager
 	_checkpoints = registry.get_service(&"checkpoint") as CheckpointManager
 	_input_manager = registry.get_service(&"input") as InputManager
 
-func _ready() -> void:
-	process_mode = Node.PROCESS_MODE_ALWAYS
-	visible = false
-	if restart_button:
-		restart_button.pressed.connect(_on_restart_pressed)
+func _on_ready() -> void:
+	restart_button.pressed.connect(_on_restart_pressed)
 
 func show_screen(elapsed_seconds: float, rescued: bool) -> void:
-	visible = true
 	_can_restart = false
 	
 	var mins: int = int(elapsed_seconds) / 60
@@ -83,5 +83,5 @@ func _on_restart_pressed() -> void:
 	var target_path: String = "res://game/scenes/gameplay/levels/Floor01.tscn"
 	if get_tree().current_scene and not get_tree().current_scene.scene_file_path.is_empty():
 		target_path = get_tree().current_scene.scene_file_path
-	queue_free()
-	get_tree().change_scene_to_file(target_path)
+	close()
+	_scene.go_to(target_path)

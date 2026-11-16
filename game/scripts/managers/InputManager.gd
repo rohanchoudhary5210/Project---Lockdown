@@ -34,10 +34,14 @@ var _recaptured_frames: int = 0
 var _mouse_delta: Vector2 = Vector2.ZERO
 var _touch_delta: Vector2 = Vector2.ZERO
 
+var _game: GameManager
+var _ui: UIManager
 ## Services come from GameService (see GameService._inject_into_new_nodes); null when run without it.
 var _settings: SettingsManager
 
 func inject_services(registry: Node) -> void:
+	_game = registry.get_service(&"game") as GameManager
+	_ui = registry.get_service(&"ui") as UIManager
 	_settings = registry.get_service(&"settings") as SettingsManager
 
 func is_touch_device() -> bool:
@@ -78,7 +82,7 @@ func _on_settings_changed(key: String, _val: Variant) -> void:
 			last_input_device = InputDevice.TOUCH
 		else:
 			if not is_gameplay_paused and not is_death_screen_active and not is_level_clear_active:
-				if get_tree().current_scene and get_tree().current_scene.name != "MainMenu":
+				if get_tree().current_scene and get_tree().current_scene.name != "Home":
 					capture_mouse()
 
 func _process(_delta: float) -> void:
@@ -99,24 +103,20 @@ func _handle_go_back_request() -> void:
 	if is_death_screen_active or is_level_clear_active:
 		return
 	
-	if get_tree().current_scene and get_tree().current_scene.name == "MainMenu":
+	if get_tree().current_scene and get_tree().current_scene.name == "Home":
 		get_tree().quit()
 		return
 	
-	var pause_menu = get_tree().root.find_child("PauseMenu", true, false)
-	if pause_menu and is_instance_valid(pause_menu):
-		var settings_menu = pause_menu.find_child("SettingsMenu", true, false)
-		if settings_menu and settings_menu.visible:
-			settings_menu._on_back_pressed()
-			return
-		toggle_pause()
-	else:
-		toggle_pause()
+	# Android back: leave the settings panel first, otherwise toggle pause
+	if _ui and _ui.current() is SettingsMenu:
+		_ui.current()._on_back_pressed()
+		return
+	toggle_pause()
 
 func _handle_app_paused_or_focus_out() -> void:
 	if is_gameplay_paused or is_death_screen_active or is_level_clear_active:
 		return
-	if get_tree().current_scene and get_tree().current_scene.name == "MainMenu":
+	if get_tree().current_scene and get_tree().current_scene.name == "Home":
 		return
 	pause_gameplay()
 
@@ -132,8 +132,7 @@ func capture_mouse() -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 		mouse_captured = true
 		is_gameplay_paused = false
-		if get_tree():
-			get_tree().paused = false
+		_set_tree_paused(false)
 		just_recaptured = false
 		mouse_capture_changed.emit(true)
 		pause_toggled.emit(false)
@@ -142,8 +141,7 @@ func capture_mouse() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	mouse_captured = true
 	is_gameplay_paused = false
-	if get_tree():
-		get_tree().paused = false
+	_set_tree_paused(false)
 	just_recaptured = true
 	_recaptured_frames = 2
 	mouse_capture_changed.emit(true)
@@ -153,14 +151,24 @@ func release_mouse() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	mouse_captured = false
 	is_gameplay_paused = true
-	if get_tree():
-		get_tree().paused = true
+	_set_tree_paused(true)
 	just_recaptured = false
 	_recaptured_frames = 0
 	_mouse_delta = Vector2.ZERO
 	_touch_delta = Vector2.ZERO
 	mouse_capture_changed.emit(false)
 	pause_toggled.emit(true)
+
+## GameManager owns PLAYING <-> PAUSED. The tree pause is also set directly because the mouse is
+## captured/released outside of PLAYING too (Home, death screen), where GameManager ignores it.
+func _set_tree_paused(on: bool) -> void:
+	if _game:
+		if on:
+			_game.pause()
+		else:
+			_game.resume()
+	if get_tree():
+		get_tree().paused = on
 
 func toggle_mouse_capture() -> void:
 	if mouse_captured:

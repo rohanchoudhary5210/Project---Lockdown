@@ -31,11 +31,15 @@ var is_dying: bool = false
 var is_respawning: bool = false
 var _invulnerability_timer: float = 0.0
 
+var _game: GameManager
+var _bus: Node
 ## Services come from GameService (see GameService._inject_into_new_nodes); null when run without it.
 var _input_manager: InputManager
 var _time_manager: TimeManager
 
 func inject_services(registry: Node) -> void:
+	_game = registry.get_service(&"game") as GameManager
+	_bus = registry.get_service(&"bus")
 	_input_manager = registry.get_service(&"input") as InputManager
 	_time_manager = registry.get_service(&"time") as TimeManager
 
@@ -167,6 +171,10 @@ func _on_player_died() -> void:
 func handle_player_death() -> void:
 	is_dying = true
 	player_death_started.emit()
+	if _game:
+		_game.game_over("player_died")
+	if _bus:
+		_bus.player_died.emit()
 	
 	# Abort any active hitstop or pause
 	var tm = _time_manager
@@ -285,6 +293,11 @@ func respawn_player() -> void:
 	
 	is_dying = false
 	is_respawning = false
+	if _game:
+		_game.reset() # back to PLAYING (also from PAUSED when restarting via the pause menu)
+		_game.start()
+	if _bus:
+		_bus.player_respawned.emit()
 	player_respawned.emit()
 
 func _set_player_invulnerable(invuln: bool) -> void:

@@ -3,6 +3,10 @@ extends Control
 
 ## Project: Lockdown - HUD Component (Milestone 3)
 ## Displays health bar, ammo counter, crosshair, interaction prompt, and damage flash.
+## Pause, settings and death panels are UIManager screens; the HUD pushes and pops them.
+
+const PAUSE_MENU_SCENE: PackedScene = preload("res://game/scenes/ui/mfw/PauseMenu.tscn")
+const DEATH_SCREEN_SCENE: PackedScene = preload("res://game/scenes/ui/mfw/DeathScreen.tscn")
 
 @onready var health_bar: ProgressBar = $HealthContainer/Margin/VBox/HealthBar
 @onready var health_label: Label = $HealthContainer/Margin/VBox/HBox/HealthLabel
@@ -13,16 +17,13 @@ extends Control
 @onready var interact_label: Label = $InteractContainer/Margin/HBox/InteractLabel
 @onready var damage_flash: ColorRect = $DamageFlash
 @onready var crosshair: Control = $Crosshair
-@onready var pause_menu: Control = get_node_or_null("PauseMenu")
-@onready var pause_container: Control = pause_menu
 @onready var touch_controls: Control = get_node_or_null("TouchControls")
 @onready var checkpoint_container: PanelContainer = $CheckpointContainer
 @onready var checkpoint_label: Label = $CheckpointContainer/Margin/CheckpointLabel
 @onready var invuln_label: Label = $InvulnerabilityLabel
 @onready var death_overlay: ColorRect = $DeathOverlay
-@onready var death_container: Control = $DeathContainer
-@onready var restart_button: Button = $DeathContainer/Center/VBox/RestartButton
-@onready var death_hint: Label = $DeathContainer/Center/VBox/Hint
+@onready var damage_indicator: DamageDirectionIndicator = $DamageDirectionIndicator
+@onready var objective_display: ObjectiveDisplay = $ObjectiveDisplay
 @onready var progress_ring: ProgressRing = $Crosshair/ProgressRing
 @onready var subtitle_container: PanelContainer = $SubtitleContainer
 @onready var subtitle_label: RichTextLabel = $SubtitleContainer/Margin/SubtitleLabel
@@ -30,18 +31,16 @@ extends Control
 var _vignette_intensity: float = 0.0
 var _low_hp_desat: float = 0.0
 var _pulse_timer: float = 0.0
-var _death_screen_input_ready: bool = false
-var _death_key_must_release: bool = false
 var _last_vp_size: Vector2 = Vector2.ZERO
-var damage_indicator: DamageDirectionIndicator = null
-var objective_display: ObjectiveDisplay = null
 
 ## Services come from GameService (see GameService._inject_into_new_nodes); null when run without it.
 var _checkpoints: CheckpointManager
 var _input_manager: InputManager
 var _subtitles: SubtitleManager
+var _ui: UIManager
 
 func inject_services(registry: Node) -> void:
+	_ui = registry.get_service(&"ui") as UIManager
 	_checkpoints = registry.get_service(&"checkpoint") as CheckpointManager
 	_input_manager = registry.get_service(&"input") as InputManager
 	_subtitles = registry.get_service(&"subtitle") as SubtitleManager
@@ -52,8 +51,6 @@ func _ready() -> void:
 		interact_container.visible = false
 	if damage_flash:
 		damage_flash.visible = false
-	if pause_container:
-		pause_container.visible = false
 	if checkpoint_container:
 		checkpoint_container.visible = false
 		checkpoint_container.modulate.a = 0.0
@@ -61,25 +58,8 @@ func _ready() -> void:
 		invuln_label.visible = false
 	if death_overlay:
 		death_overlay.modulate.a = 0.0
-	if death_container:
-		death_container.visible = false
 	if subtitle_container:
 		subtitle_container.visible = false
-	if restart_button:
-		restart_button.pressed.connect(_on_restart_pressed)
-	
-	# Damage direction arcs sit just above the damage flash, under the crosshair and menus
-	damage_indicator = DamageDirectionIndicator.new()
-	damage_indicator.name = "DamageDirectionIndicator"
-	add_child(damage_indicator)
-	if damage_flash:
-		move_child(damage_indicator, damage_flash.get_index() + 1)
-	
-	objective_display = ObjectiveDisplay.new()
-	objective_display.name = "ObjectiveDisplay"
-	add_child(objective_display)
-	if crosshair:
-		move_child(objective_display, crosshair.get_index() + 1) # below menus and death screen
 	
 	var vp = get_viewport()
 	if vp and not vp.size_changed.is_connected(_update_layout_and_safe_area):
@@ -97,6 +77,13 @@ func _enter_tree() -> void:
 		cl.layer = 0
 		p.call_deferred("add_child", cl)
 		call_deferred("_reparent_to_layer", cl)
+
+func _exit_tree() -> void:
+	# Leaving the level (quit, scene change) with a panel open: don't leave it on the UI stack
+	if _ui and is_queued_for_deletion():
+		_close_pause_panels()
+		if _ui.current() is DeathScreen:
+			_ui.pop()
 
 func _reparent_to_layer(cl: CanvasLayer) -> void:
 	if is_inside_tree() and cl and is_instance_valid(cl) and get_parent() != cl:
@@ -263,28 +250,6 @@ func _on_subtitle_cleared() -> void:
 	if subtitle_container:
 		subtitle_container.visible = false
 
-func _unhandled_input(event: InputEvent) -> void:
-	if death_container and death_container.visible:
-		if _death_key_must_release:
-			if not Input.is_action_pressed("interact") and not Input.is_action_pressed("jump"):
-				_death_key_must_release = false
-			return
-		
-		if not _death_screen_input_ready:
-			return
-		
-		if event.is_action_pressed("interact") or event.is_action_pressed("jump"):
-			if not event.is_echo():
-				_on_restart_pressed()
-				get_viewport().set_input_as_handled()
-
-func _on_restart_pressed() -> void:
-	if not _death_screen_input_ready:
-		return
-	var cm = _checkpoints
-	if cm and cm.has_method("respawn_player"):
-		cm.respawn_player()
-
 func _on_checkpoint_activated(_name: String) -> void:
 	show_checkpoint_notification("Checkpoint reached", 2.0)
 
@@ -305,16 +270,20 @@ func show_checkpoint_notification(text: String = "Checkpoint reached", duration:
 			checkpoint_container.visible = false
 	)
 
+## Pops the pause menu and any settings panel opened from it (the UI stack holds nothing else in a level
+## while paused).
+func _close_pause_panels() -> void:
+	if not _ui:
+		return
+	while _ui.current() is PauseMenu or _ui.current() is SettingsMenu:
+		_ui.pop()
+
 func _on_player_death_started() -> void:
-	_death_screen_input_ready = false
 	if crosshair:
 		crosshair.visible = false
 	if interact_container:
 		interact_container.visible = false
-	if pause_menu:
-		pause_menu.close_menu()
-	elif pause_container:
-		pause_container.visible = false
+	_close_pause_panels()
 	if touch_controls:
 		touch_controls.visible = false
 	
@@ -325,29 +294,12 @@ func _on_player_death_started() -> void:
 		tween.tween_property(death_overlay, "modulate:a", 1.0, 1.0)
 
 func _on_death_screen_shown() -> void:
-	_death_screen_input_ready = false
-	_death_key_must_release = Input.is_action_pressed("interact") or Input.is_action_pressed("jump")
-	if death_container:
-		death_container.visible = true
-	if restart_button:
-		restart_button.disabled = true
-	if death_hint:
-		var im = _input_manager
-		var interact_key = im.get_action_key_label("interact") if im else "E"
-		var jump_key = im.get_action_key_label("jump") if im else "Space"
-		death_hint.text = "Press [%s] or [%s] to restart" % [interact_key, jump_key]
-	
-	# Ignore restart input for the first 0.5s after it appears
-	await get_tree().create_timer(0.5, true, false, true).timeout
-	if death_container and death_container.visible:
-		_death_screen_input_ready = true
-		if restart_button:
-			restart_button.disabled = false
-			restart_button.grab_focus()
+	if _ui and not (_ui.current() is DeathScreen):
+		_ui.push_packed(DEATH_SCREEN_SCENE)
 
 func _on_player_respawned() -> void:
-	_death_screen_input_ready = false
-	_death_key_must_release = false
+	if _ui and _ui.current() is DeathScreen:
+		_ui.pop() # respawned some other way than the death screen's own Restart
 	reset_hud_states()
 	if death_overlay:
 		var tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
@@ -372,12 +324,7 @@ func reset_hud_states() -> void:
 		health_icon.set_icon_color(Color(0.3, 0.9, 0.6))
 	if interact_container:
 		interact_container.visible = false
-	if pause_menu:
-		pause_menu.close_menu()
-	elif pause_container:
-		pause_container.visible = false
-	if death_container:
-		death_container.visible = false
+	_close_pause_panels()
 	if checkpoint_container:
 		checkpoint_container.visible = false
 		checkpoint_container.modulate.a = 0.0
@@ -395,13 +342,12 @@ func _on_invulnerability_changed(is_invuln: bool) -> void:
 		invuln_label.visible = is_invuln
 
 func _on_pause_toggled(is_paused: bool) -> void:
-	if pause_menu:
+	if _ui:
 		if is_paused:
-			pause_menu.open_menu()
+			if not (_ui.current() is PauseMenu or _ui.current() is SettingsMenu):
+				_ui.push_packed(PAUSE_MENU_SCENE)
 		else:
-			pause_menu.close_menu()
-	elif pause_container:
-		pause_container.visible = is_paused
+			_close_pause_panels()
 	if crosshair:
 		crosshair.visible = not is_paused
 	if touch_controls:

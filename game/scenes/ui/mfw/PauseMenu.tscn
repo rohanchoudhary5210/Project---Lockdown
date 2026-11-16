@@ -1,7 +1,6 @@
-[gd_scene load_steps=7 format=3 uid="uid://cpause_menu_001"]
+[gd_scene format=3 uid="uid://cpause_menu_001"]
 
 [ext_resource type="Script" path="res://game/scripts/controllers/ui/PauseMenu.gd" id="1_pause"]
-[ext_resource type="PackedScene" path="res://game/scenes/ui/mfw/SettingsMenu.tscn" id="2_settings"]
 [ext_resource type="Theme" uid="uid://clockdown_theme_proc_001" path="res://game/assets/ui/lockdown_theme.tres" id="3_theme"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
@@ -138,7 +137,3 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 text = "QUIT TO MAIN MENU"
 
-[node name="SettingsMenu" parent="." instance=ExtResource("2_settings")]
-unique_name_in_owner = true
-visible = false
-layout_mode = 1
