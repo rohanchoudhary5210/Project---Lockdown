@@ -1,0 +1,59 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://game/assets/materials/procedural/mat_wood.tres" id="m_wood"]
+
+[sub_resource type="BoxMesh" id="Mesh_0"]
+material = ExtResource("m_wood")
+size = Vector3(3, 1.1, 0.3)
+
+[sub_resource type="BoxShape3D" id="Shape_0"]
+size = Vector3(3, 1.1, 0.3)
+
+[sub_resource type="BoxMesh" id="Mesh_1"]
+material = ExtResource("m_wood")
+size = Vector3(3.2, 0.06, 0.9)
+
+[sub_resource type="BoxMesh" id="Mesh_2"]
+material = ExtResource("m_wood")
+size = Vector3(0.3, 1.1, 1.2)
+
+[sub_resource type="BoxShape3D" id="Shape_2"]
+size = Vector3(0.3, 1.1, 1.2)
+
+[sub_resource type="StandardMaterial3D" id="Mat_screen"]
+albedo_color = Color(0.05, 0.12, 0.1, 1)
+emission_enabled = true
+emission = Color(0.25, 0.75, 0.55, 1)
+emission_energy_multiplier = 1.6
+
+[sub_resource type="BoxMesh" id="Mesh_3"]
+material = SubResource("Mat_screen")
+size = Vector3(0.5, 0.35, 0.05)
+
+[node name="ReceptionDesk" type="StaticBody3D"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="Front" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0.3)
+mesh = SubResource("Mesh_0")
+
+[node name="FrontCollision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0.3)
+shape = SubResource("Shape_0")
+
+[node name="Top" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.13, 0)
+mesh = SubResource("Mesh_1")
+
+[node name="Return" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.45, 0.55, -0.45)
+mesh = SubResource("Mesh_2")
+
+[node name="ReturnCollision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.45, 0.55, -0.45)
+shape = SubResource("Shape_2")
+
+[node name="Monitor" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6, 1.36, -0.1)
+mesh = SubResource("Mesh_3")

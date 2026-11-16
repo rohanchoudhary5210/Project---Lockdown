@@ -1,0 +1,29 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://game/assets/materials/procedural/mat_plaster_wall.tres" id="m_plaster"]
+
+[sub_resource type="BoxMesh" id="Mesh_0"]
+material = ExtResource("m_plaster")
+size = Vector3(2, 2.5, 0.2)
+
+[sub_resource type="BoxShape3D" id="Shape_0"]
+size = Vector3(2, 2.5, 0.2)
+
+[sub_resource type="BoxOccluder3D" id="Occ_0"]
+size = Vector3(2, 2.5, 0.2)
+
+[node name="WallSegmentPlaster" type="StaticBody3D"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="Wall" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
+mesh = SubResource("Mesh_0")
+
+[node name="WallCollision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
+shape = SubResource("Shape_0")
+
+[node name="WallOccluder" type="OccluderInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
+occluder = SubResource("Occ_0")

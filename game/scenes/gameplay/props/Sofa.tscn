@@ -1,0 +1,39 @@
+[gd_scene format=3]
+
+[sub_resource type="StandardMaterial3D" id="Mat_fabric_red"]
+albedo_color = Color(0.35, 0.12, 0.1, 1)
+roughness = 0.95
+
+[sub_resource type="BoxMesh" id="Mesh_0"]
+material = SubResource("Mat_fabric_red")
+size = Vector3(2, 0.45, 0.9)
+
+[sub_resource type="BoxShape3D" id="Shape_0"]
+size = Vector3(2, 0.45, 0.9)
+
+[sub_resource type="BoxMesh" id="Mesh_1"]
+material = SubResource("Mat_fabric_red")
+size = Vector3(2, 0.5, 0.2)
+
+[sub_resource type="BoxShape3D" id="Shape_1"]
+size = Vector3(2, 0.5, 0.2)
+
+[node name="Sofa" type="StaticBody3D"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="Seat" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.225, 0)
+mesh = SubResource("Mesh_0")
+
+[node name="SeatCollision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.225, 0)
+shape = SubResource("Shape_0")
+
+[node name="Back" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, -0.35)
+mesh = SubResource("Mesh_1")
+
+[node name="BackCollision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, -0.35)
+shape = SubResource("Shape_1")

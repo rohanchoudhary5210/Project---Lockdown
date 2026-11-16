@@ -18,7 +18,7 @@ var _game: GameManager
 var _scene: SceneManager
 
 const SETTINGS_SCENE: PackedScene = preload("res://game/scenes/ui/mfw/SettingsMenu.tscn")
-const FIRST_LEVEL: String = "res://game/scenes/gameplay/levels/Floor01.tscn"
+const FIRST_LEVEL: String = "res://game/scenes/gameplay/levels/GroundFloor.tscn"
 
 func inject_services(registry: Node) -> void:
 	_ui = registry.get_service(&"ui") as UIManager

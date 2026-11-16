@@ -1,0 +1,22 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://game/assets/materials/procedural/mat_concrete_wall.tres" id="m_concrete"]
+
+[sub_resource type="BoxMesh" id="Mesh_0"]
+material = ExtResource("m_concrete")
+size = Vector3(0.6, 2.5, 0.6)
+
+[sub_resource type="BoxShape3D" id="Shape_0"]
+size = Vector3(0.6, 2.5, 0.6)
+
+[node name="Pillar" type="StaticBody3D"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="Column" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
+mesh = SubResource("Mesh_0")
+
+[node name="ColumnCollision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
+shape = SubResource("Shape_0")

@@ -91,6 +91,8 @@ Available keys are `&"game"`, `&"audio"`, `&"haptics"`, `&"save"`, `&"scene"`, `
 
 **Project: Lockdown adds:** `&"input"` (InputManager), `&"time"` (TimeManager, hitstop), `&"debug"` (DebugTools), `&"noise"` (NoiseBus), `&"checkpoint"` (CheckpointManager), `&"subtitle"` (SubtitleManager), `&"settings"` (SettingsManager, stored through SaveManager) and `&"spatial_audio"` (SpatialAudioManager, 3D sound; the template `&"audio"` stays for UI/music). GameService also calls `inject_services(registry)` on every node as it enters the tree (before its `_ready()`), so runtime-spawned nodes and scenes started directly (F6, test scripts) are wired too. Level roots use `LevelRoot.gd`, which starts GameService when the scene runs without `Boot.tscn`. Lockdown's panels (`ui/mfw/PauseMenu`, `SettingsMenu`, `DeathScreen`, `LevelClearScreen`) are `UIController`s on the UIManager stack: the HUD pushes the pause menu and death screen, `LevelExitTrigger` pushes the level clear screen; pausing goes through `GameManager.pause()/resume()`.
 
+**Levels:** Home → `GroundFloor.tscn` → `Floor01.tscn` (a `LevelExitTrigger` with `next_level` set loads the next level; without it the level clear screen shows). The Ground Floor is built only from kit scenes on a 2m grid: structure in `gameplay/modular/` (`WallSegment`, `WallSegmentPlaster`, `DoorFrame`, `ShopWindow`, `FloorTile8`, `CeilingTile8/4`, `Pillar`, `StairFlight`; walls carry their own occluders) and furniture/lamps in `gameplay/props/`. Its navmesh is baked to `assets/data/navmesh/ground_floor_navmesh.tres`. `scripts/tools/BuildGroundFloor.gd` generated the first version; edit the scene in the editor from now on, and re-bake the NavigationRegion3D after moving walls or cover.
+
 ## 5. Audio
 
 ```gdscript AudioExample.gd

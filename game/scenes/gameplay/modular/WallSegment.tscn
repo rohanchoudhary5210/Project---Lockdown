@@ -1,8 +1,11 @@
-[gd_scene load_steps=4 format=3 uid="uid://cwall_segment_modular_001"]
+[gd_scene format=3 uid="uid://cwall_segment_modular_001"]
 
 [ext_resource type="Material" uid="uid://cmat_concrete_proc_001" path="res://game/assets/materials/procedural/mat_concrete_wall.tres" id="1_mat"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_wall"]
+size = Vector3(2, 2.5, 0.2)
+
+[sub_resource type="BoxOccluder3D" id="BoxOccluder3D_wall"]
 size = Vector3(2, 2.5, 0.2)
 
 [sub_resource type="BoxMesh" id="BoxMesh_wall"]
@@ -20,3 +23,7 @@ shape = SubResource("BoxShape3D_wall")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
 mesh = SubResource("BoxMesh_wall")
+
+[node name="OccluderInstance3D" type="OccluderInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
+occluder = SubResource("BoxOccluder3D_wall")

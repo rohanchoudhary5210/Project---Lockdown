@@ -6,6 +6,10 @@ extends Area3D
 ## Triggers LevelClearScreen with elapsed time and captive rescue status.
 
 @export var level_clear_screen_scene: PackedScene = preload("res://game/scenes/ui/mfw/LevelClearScreen.tscn")
+## Main objective line shown by the HUD's ObjectiveDisplay.
+@export var objective_text: String = "Reach the stairwell exit (Stair B)"
+## Level to load when the player reaches this exit. Empty: this is the last level, show the clear screen.
+@export_file("*.tscn") var next_level: String = ""
 
 var _start_time: float = 0.0
 var _cleared: bool = false
@@ -16,8 +20,12 @@ var _input_manager: InputManager
 var _ui: UIManager
 var _game: GameManager
 var _bus: Node
+var _scene: SceneManager
+var _checkpoints: CheckpointManager
 
 func inject_services(registry: Node) -> void:
+	_scene = registry.get_service(&"scene") as SceneManager
+	_checkpoints = registry.get_service(&"checkpoint") as CheckpointManager
 	_ui = registry.get_service(&"ui") as UIManager
 	_game = registry.get_service(&"game") as GameManager
 	_bus = registry.get_service(&"bus")
@@ -42,7 +50,18 @@ func _on_body_entered(body: Node3D) -> void:
 		return
 	
 	_cleared = true
-	trigger_clear()
+	if next_level != "":
+		go_to_next_level()
+	else:
+		trigger_clear()
+
+## Mid-run exit: straight into the next level, which starts its own checkpoint session.
+func go_to_next_level() -> void:
+	if _bus:
+		_bus.level_completed.emit(String(get_tree().current_scene.name) if get_tree().current_scene else "")
+	if _checkpoints:
+		_checkpoints.reset_session()
+	_scene.go_to(next_level)
 
 func trigger_clear() -> void:
 	var elapsed: float = (Time.get_ticks_msec() / 1000.0) - _start_time

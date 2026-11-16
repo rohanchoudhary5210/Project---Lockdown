@@ -40,9 +40,12 @@ func _connect_level() -> void:
 ## Objective text for the current level state ("" when the level has no exit).
 func build_text() -> String:
 	var scene := get_tree().current_scene
-	if scene == null or scene.find_children("*", "LevelExitTrigger", true, false).is_empty():
+	if scene == null:
 		return ""
-	var lines: PackedStringArray = ["Reach the stairwell exit (Stair B)"]
+	var exits: Array[Node] = scene.find_children("*", "LevelExitTrigger", true, false)
+	if exits.is_empty():
+		return ""
+	var lines: PackedStringArray = [exits[0].objective_text]
 	for c in get_tree().get_nodes_in_group("captives"):
 		if not c.get("is_rescued"):
 			lines.append("Optional: find and rescue the captured officer")

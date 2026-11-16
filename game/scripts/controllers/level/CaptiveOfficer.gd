@@ -13,6 +13,11 @@ signal rescued(officer: CaptiveOfficer)
 @export var officer_name: String = "Officer Walker"
 @export var is_hold_interaction: bool = true
 @export var hold_duration: float = 2.0
+## What the officer says after the rescue (one subtitle per line, 3.5s each).
+@export var rescue_lines: PackedStringArray = [
+	"Good to see you, officer. The stairwell to the next floor is watched by two shooters.",
+	"Take my spare rounds and patch up. Watch your corners.",
+]
 
 @onready var interactable: InteractableComponent = $InteractableComponent
 @onready var mesh_instance: MeshInstance3D = $MeshInstance3D
@@ -84,8 +89,8 @@ func complete_interaction(player: Node) -> void:
 	# 3. Subtitles: play 2 intel dialogue lines via SubtitleManager
 	var sm = _subtitles
 	if sm:
-		sm.play_subtitle(officer_name, "Good to see you, officer. The stairwell to the next floor is watched by two shooters.", 3.5)
-		sm.play_subtitle(officer_name, "Take my spare rounds and patch up. Watch your corners.", 3.5)
+		for line in rescue_lines:
+			sm.play_subtitle(officer_name, line, 3.5)
 
 func set_rescued_state(rescued_status: bool) -> void:
 	is_rescued = rescued_status

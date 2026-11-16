@@ -1,0 +1,59 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://game/assets/materials/procedural/mat_concrete_wall.tres" id="m_concrete"]
+
+[sub_resource type="BoxMesh" id="Mesh_0"]
+material = ExtResource("m_concrete")
+size = Vector3(0.2, 2.5, 0.2)
+
+[sub_resource type="BoxShape3D" id="Shape_0"]
+size = Vector3(0.2, 2.5, 0.2)
+
+[sub_resource type="BoxMesh" id="Mesh_1"]
+material = ExtResource("m_concrete")
+size = Vector3(0.2, 2.5, 0.2)
+
+[sub_resource type="BoxShape3D" id="Shape_1"]
+size = Vector3(0.2, 2.5, 0.2)
+
+[sub_resource type="BoxMesh" id="Mesh_2"]
+material = ExtResource("m_concrete")
+size = Vector3(1.6, 0.5, 0.2)
+
+[sub_resource type="BoxShape3D" id="Shape_2"]
+size = Vector3(1.6, 0.5, 0.2)
+
+[sub_resource type="BoxOccluder3D" id="Occ_2"]
+size = Vector3(1.6, 0.5, 0.2)
+
+[node name="DoorFrame" type="StaticBody3D"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="PostLeft" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, 0)
+mesh = SubResource("Mesh_0")
+
+[node name="PostLeftCollision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, 0)
+shape = SubResource("Shape_0")
+
+[node name="PostRight" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9, 1.25, 0)
+mesh = SubResource("Mesh_1")
+
+[node name="PostRightCollision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9, 1.25, 0)
+shape = SubResource("Shape_1")
+
+[node name="Header" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.25, 0)
+mesh = SubResource("Mesh_2")
+
+[node name="HeaderCollision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.25, 0)
+shape = SubResource("Shape_2")
+
+[node name="HeaderOccluder" type="OccluderInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.25, 0)
+occluder = SubResource("Occ_2")

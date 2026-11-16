@@ -1,0 +1,134 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://game/assets/materials/procedural/mat_metal.tres" id="m_metal"]
+
+[sub_resource type="BoxMesh" id="Mesh_0"]
+material = ExtResource("m_metal")
+size = Vector3(2, 1.8, 0.06)
+
+[sub_resource type="BoxMesh" id="Mesh_1"]
+material = ExtResource("m_metal")
+size = Vector3(2, 1.8, 0.7)
+
+[sub_resource type="BoxShape3D" id="Shape_1"]
+size = Vector3(2, 1.8, 0.7)
+
+[sub_resource type="BoxMesh" id="Mesh_2"]
+material = ExtResource("m_metal")
+size = Vector3(2, 0.04, 0.7)
+
+[sub_resource type="BoxMesh" id="Mesh_3"]
+material = ExtResource("m_metal")
+size = Vector3(2, 0.04, 0.7)
+
+[sub_resource type="BoxMesh" id="Mesh_4"]
+material = ExtResource("m_metal")
+size = Vector3(2, 0.04, 0.7)
+
+[sub_resource type="BoxMesh" id="Mesh_5"]
+material = ExtResource("m_metal")
+size = Vector3(2, 0.04, 0.7)
+
+[sub_resource type="StandardMaterial3D" id="Mat_cardboard"]
+albedo_color = Color(0.55, 0.42, 0.26, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="Mesh_6"]
+material = SubResource("Mat_cardboard")
+size = Vector3(0.5, 0.3, 0.25)
+
+[sub_resource type="BoxMesh" id="Mesh_7"]
+material = SubResource("Mat_cardboard")
+size = Vector3(0.5, 0.3, 0.25)
+
+[sub_resource type="BoxMesh" id="Mesh_8"]
+material = SubResource("Mat_cardboard")
+size = Vector3(0.5, 0.3, 0.25)
+
+[sub_resource type="BoxMesh" id="Mesh_9"]
+material = SubResource("Mat_cardboard")
+size = Vector3(0.5, 0.3, 0.25)
+
+[sub_resource type="BoxMesh" id="Mesh_10"]
+material = SubResource("Mat_cardboard")
+size = Vector3(0.5, 0.3, 0.25)
+
+[sub_resource type="BoxMesh" id="Mesh_11"]
+material = SubResource("Mat_cardboard")
+size = Vector3(0.5, 0.3, 0.25)
+
+[sub_resource type="BoxMesh" id="Mesh_12"]
+material = SubResource("Mat_cardboard")
+size = Vector3(0.5, 0.3, 0.25)
+
+[sub_resource type="BoxMesh" id="Mesh_13"]
+material = SubResource("Mat_cardboard")
+size = Vector3(0.5, 0.3, 0.25)
+
+[sub_resource type="BoxMesh" id="Mesh_14"]
+material = SubResource("Mat_cardboard")
+size = Vector3(0.5, 0.3, 0.25)
+
+[node name="GroceryShelf" type="StaticBody3D"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="Back" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+mesh = SubResource("Mesh_0")
+
+[node name="ShelfCollision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("Shape_1")
+
+[node name="Shelf0" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+mesh = SubResource("Mesh_2")
+
+[node name="Shelf1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.65, 0)
+mesh = SubResource("Mesh_3")
+
+[node name="Shelf2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.15, 0)
+mesh = SubResource("Mesh_4")
+
+[node name="Shelf3" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.65, 0)
+mesh = SubResource("Mesh_5")
+
+[node name="Goods0" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7, 0.32, -0.2)
+mesh = SubResource("Mesh_6")
+
+[node name="Goods1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.32, 0.2)
+mesh = SubResource("Mesh_7")
+
+[node name="Goods2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7, 0.32, -0.2)
+mesh = SubResource("Mesh_8")
+
+[node name="Goods3" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7, 0.82, 0.2)
+mesh = SubResource("Mesh_9")
+
+[node name="Goods4" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.82, -0.2)
+mesh = SubResource("Mesh_10")
+
+[node name="Goods5" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7, 0.82, 0.2)
+mesh = SubResource("Mesh_11")
+
+[node name="Goods6" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7, 1.32, -0.2)
+mesh = SubResource("Mesh_12")
+
+[node name="Goods7" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.32, 0.2)
+mesh = SubResource("Mesh_13")
+
+[node name="Goods8" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7, 1.32, -0.2)
+mesh = SubResource("Mesh_14")
