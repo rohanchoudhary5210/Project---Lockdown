@@ -7,6 +7,14 @@ const OUTPUT_DIR := "res://game/assets/audio/procedural/"
 func _init() -> void:
 	print("--- Generating Procedural Audio Assets ---")
 	DirAccess.make_dir_recursive_absolute(OUTPUT_DIR)
+	seed(1337) # same assets every run
+	
+	# Survival / tension set (run with "-- --tension-only" to regenerate just these)
+	_generate_tension_set()
+	if "--tension-only" in OS.get_cmdline_user_args():
+		print("--- Tension audio generated ---")
+		quit(0)
+		return
 	
 	_generate_sfx_pistol_shot()
 	_generate_sfx_rifle_shot()
@@ -342,3 +350,120 @@ func _generate_amb_building_hum() -> void:
 		var s3 = sin(TAU * 120.0 * t) * 0.08
 		samples[i] = s1 + s2 + s3
 	_save_wav_and_tres("amb_building_hum", samples, true)
+
+# ── Survival / tension set ──────────────────────────────────────────────────
+func _generate_tension_set() -> void:
+	_generate_sfx_breath()
+	_generate_sfx_flashlight_click()
+	_generate_sfx_distant_thud()
+	_generate_sfx_metal_creak()
+	_generate_sfx_door_bang()
+	_generate_sfx_debris_fall()
+	_generate_sfx_power_down()
+	_generate_amb_tension_drone()
+
+func _lowpass(samples: Array[float], amount: float) -> void:
+	var y := 0.0
+	for i in samples.size():
+		y += (samples[i] - y) * amount
+		samples[i] = y
+
+func _buffer(dur: float) -> Array[float]:
+	var s: Array[float] = []
+	s.resize(int(SAMPLE_RATE * dur))
+	s.fill(0.0)
+	return s
+
+# One shaky breath (in, then out): band-limited noise under a two-hump envelope
+func _generate_sfx_breath() -> void:
+	var s := _buffer(1.7)
+	for i in s.size():
+		var t := float(i) / SAMPLE_RATE
+		var env_in := sin(clampf(t / 0.65, 0.0, 1.0) * PI) * 0.55
+		var env_out := sin(clampf((t - 0.75) / 0.9, 0.0, 1.0) * PI) * 0.8
+		var tremble := 1.0 + 0.25 * sin(TAU * 9.0 * t)
+		s[i] = randf_range(-1.0, 1.0) * (env_in + env_out) * tremble
+	_lowpass(s, 0.12)
+	for i in s.size():
+		s[i] *= 1.6
+	_save_wav_and_tres("sfx_breath", s)
+
+func _generate_sfx_flashlight_click() -> void:
+	var s := _buffer(0.06)
+	for i in s.size():
+		var t := float(i) / SAMPLE_RATE
+		s[i] = (randf_range(-1.0, 1.0) * 0.5 + sin(TAU * 3200.0 * t) * 0.4) * exp(-t * 160.0)
+	_save_wav_and_tres("sfx_flashlight_click", s)
+
+# Something heavy dropped far away in the building
+func _generate_sfx_distant_thud() -> void:
+	var s := _buffer(1.4)
+	for i in s.size():
+		var t := float(i) / SAMPLE_RATE
+		s[i] = (sin(TAU * 42.0 * t) * 0.8 + randf_range(-1.0, 1.0) * 0.25) * exp(-t * 4.5)
+	_lowpass(s, 0.05)
+	for i in s.size():
+		s[i] *= 2.2
+	_save_wav_and_tres("sfx_distant_thud", s)
+
+# Slow metal groan: detuned sweeping tones with a scraping noise layer
+func _generate_sfx_metal_creak() -> void:
+	var s := _buffer(2.2)
+	var ph1 := 0.0
+	var ph2 := 0.0
+	for i in s.size():
+		var t := float(i) / SAMPLE_RATE
+		var f := 180.0 + 70.0 * sin(TAU * 0.35 * t) + 15.0 * sin(TAU * 7.0 * t)
+		ph1 += TAU * f / SAMPLE_RATE
+		ph2 += TAU * f * 1.51 / SAMPLE_RATE
+		var env := sin(clampf(t / 2.2, 0.0, 1.0) * PI)
+		s[i] = (sin(ph1) * 0.3 + sin(ph2) * 0.15 + randf_range(-1.0, 1.0) * 0.12 * absf(sin(TAU * 11.0 * t))) * env
+	_save_wav_and_tres("sfx_metal_creak", s)
+
+# Fist / shoulder against a door: low thump plus a short rattle
+func _generate_sfx_door_bang() -> void:
+	var s := _buffer(0.6)
+	for i in s.size():
+		var t := float(i) / SAMPLE_RATE
+		var thump := sin(TAU * 70.0 * t) * exp(-t * 18.0)
+		var rattle := randf_range(-1.0, 1.0) * exp(-t * 9.0) * 0.35 * absf(sin(TAU * 38.0 * t))
+		s[i] = (thump + rattle) * 0.9
+	_save_wav_and_tres("sfx_door_bang", s)
+
+# Ceiling giving way: a crack, then tumbling concrete
+func _generate_sfx_debris_fall() -> void:
+	var s := _buffer(2.0)
+	var hits := []
+	for k in 14:
+		hits.append([randf_range(0.05, 1.6), randf_range(0.3, 0.9), randf_range(60.0, 160.0)])
+	for i in s.size():
+		var t := float(i) / SAMPLE_RATE
+		var v := randf_range(-1.0, 1.0) * 0.6 * exp(-t * 30.0) # crack
+		for h in hits:
+			if t >= h[0]:
+				var dt: float = t - h[0]
+				v += (sin(TAU * h[2] * dt) * 0.6 + randf_range(-1.0, 1.0) * 0.4) * h[1] * exp(-dt * 14.0)
+		v += randf_range(-1.0, 1.0) * 0.08 * exp(-t * 1.2) # dust/settling
+		s[i] = v * 0.6
+	_save_wav_and_tres("sfx_debris_fall", s)
+
+# Power failing: hum dropping in pitch and fading, with a relay clunk at the start
+func _generate_sfx_power_down() -> void:
+	var s := _buffer(1.8)
+	var ph := 0.0
+	for i in s.size():
+		var t := float(i) / SAMPLE_RATE
+		var f := lerpf(120.0, 25.0, clampf(t / 1.6, 0.0, 1.0))
+		ph += TAU * f / SAMPLE_RATE
+		var clunk := randf_range(-1.0, 1.0) * exp(-t * 60.0) * 0.8
+		s[i] = (sin(ph) * 0.5 + sin(ph * 2.0) * 0.15) * (1.0 - clampf(t / 1.8, 0.0, 1.0)) + clunk
+	_save_wav_and_tres("sfx_power_down", s)
+
+# Looping low drone for tension (4s, whole cycles so it loops cleanly)
+func _generate_amb_tension_drone() -> void:
+	var s := _buffer(4.0)
+	for i in s.size():
+		var t := float(i) / SAMPLE_RATE
+		var swell := 0.75 + 0.25 * sin(TAU * 0.25 * t)
+		s[i] = (sin(TAU * 41.0 * t) * 0.3 + sin(TAU * 41.5 * t) * 0.3 + sin(TAU * 82.25 * t) * 0.08 + sin(TAU * 123.0 * t) * 0.04) * swell
+	_save_wav_and_tres("amb_tension_drone", s, true)

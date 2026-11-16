@@ -1,0 +1,27 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/scripts/controllers/level/LevelLamp.gd" id="s_lamp"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_emergency"]
+albedo_color = Color(0.5, 0.05, 0.04, 1)
+emission_enabled = true
+emission = Color(1, 0.12, 0.08, 1)
+emission_energy_multiplier = 2.5
+
+[sub_resource type="BoxMesh" id="Mesh_0"]
+material = SubResource("Mat_emergency")
+size = Vector3(0.35, 0.12, 0.12)
+
+[node name="EmergencyLamp" type="Node3D"]
+script = ExtResource("s_lamp")
+
+[node name="Fixture" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("Mesh_0")
+
+[node name="Light" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.2, 0)
+light_color = Color(1, 0.18, 0.12, 1)
+light_energy = 0.55
+omni_range = 5.0
+omni_attenuation = 1.6
