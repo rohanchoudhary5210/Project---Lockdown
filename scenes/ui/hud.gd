@@ -33,6 +33,8 @@ var _pulse_timer: float = 0.0
 var _death_screen_input_ready: bool = false
 var _death_key_must_release: bool = false
 var _last_vp_size: Vector2 = Vector2.ZERO
+var damage_indicator: DamageDirectionIndicator = null
+var objective_display: ObjectiveDisplay = null
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -55,6 +57,19 @@ func _ready() -> void:
 		subtitle_container.visible = false
 	if restart_button:
 		restart_button.pressed.connect(_on_restart_pressed)
+	
+	# Damage direction arcs sit just above the damage flash, under the crosshair and menus
+	damage_indicator = DamageDirectionIndicator.new()
+	damage_indicator.name = "DamageDirectionIndicator"
+	add_child(damage_indicator)
+	if damage_flash:
+		move_child(damage_indicator, damage_flash.get_index() + 1)
+	
+	objective_display = ObjectiveDisplay.new()
+	objective_display.name = "ObjectiveDisplay"
+	add_child(objective_display)
+	if crosshair:
+		move_child(objective_display, crosshair.get_index() + 1) # below menus and death screen
 	
 	var vp = get_viewport()
 	if vp and not vp.size_changed.is_connected(_update_layout_and_safe_area):
@@ -334,6 +349,8 @@ func _on_player_respawned() -> void:
 
 func reset_hud_states() -> void:
 	_vignette_intensity = 0.0
+	if damage_indicator:
+		damage_indicator.clear()
 	_low_hp_desat = 0.0
 	if damage_flash:
 		damage_flash.visible = false
@@ -405,8 +422,10 @@ func _on_health_changed(current: float, max_hp: float) -> void:
 	else:
 		_low_hp_desat = 0.0
 
-func _on_damaged(_amount: float, _source: Node) -> void:
+func _on_damaged(_amount: float, source: Node) -> void:
 	_vignette_intensity = 0.85
+	if damage_indicator:
+		damage_indicator.add_hit(source)
 
 func _on_ammo_changed(current_mag: int, reserve: int) -> void:
 	if ammo_label:

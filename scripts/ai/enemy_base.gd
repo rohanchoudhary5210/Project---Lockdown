@@ -39,6 +39,7 @@ var alert_source_name: String = ""
 var _search_turn_timer: float = 0.0
 var _search_target_yaw: float = 0.0
 var _step_distance_counter: float = 0.0
+var _death_tween: Tween = null
 const STEP_DISTANCE: float = 2.2
 
 func _ready() -> void:
@@ -138,6 +139,7 @@ func change_state(new_state: State) -> void:
 			velocity = Vector3.ZERO
 			collision_layer = 0
 			collision_mask = 0
+			_play_death_fall()
 			enemy_died.emit(self)
 	
 	if new_state not in [State.INVESTIGATE, State.SEARCH]:
@@ -331,7 +333,19 @@ func take_damage(amount: float, source: Node = null, damage_type: String = "bull
 func _on_health_depleted() -> void:
 	change_state(State.DEAD)
 
+## Tips the body over backwards around the feet (origin), lifted so the capsule rests on the floor.
+func _play_death_fall() -> void:
+	if _death_tween:
+		_death_tween.kill()
+	_death_tween = create_tween().set_process_mode(Tween.TWEEN_PROCESS_PHYSICS).set_parallel(true)
+	_death_tween.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	_death_tween.tween_property(self, "rotation:x", PI * 0.5, 0.45)
+	_death_tween.tween_property(self, "position:y", position.y + 0.3, 0.45)
+
 func reset_to_spawn(spawn_transform: Transform3D) -> void:
+	if _death_tween:
+		_death_tween.kill()
+		_death_tween = null
 	global_transform = spawn_transform
 	reset_physics_interpolation()
 	velocity = Vector3.ZERO

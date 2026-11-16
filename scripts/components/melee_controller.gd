@@ -11,6 +11,7 @@ extends Node3D
 
 signal attack_swung()
 signal attack_hit(target: Node, damage: float)
+signal damage_dealt(target: Node, killed: bool) # only for things that took damage (not walls)
 signal block_started()
 signal block_ended()
 signal blocked_attack(damage_mitigated: float)
@@ -171,13 +172,11 @@ func _perform_melee_hit_check() -> void:
 		_spawn_impact(hit_pos, hit_normal)
 		
 		var damaged: bool = false
-		if hit_collider:
-			if hit_collider.has_method("take_damage"):
-				hit_collider.take_damage(melee_data.damage, player, "melee")
-				damaged = true
-			elif hit_collider.get_parent() and hit_collider.get_parent().has_method("take_damage"):
-				hit_collider.get_parent().take_damage(melee_data.damage, player, "melee")
-				damaged = true
+		var target: Node = HealthComponent.find_damageable(hit_collider)
+		if target:
+			target.take_damage(melee_data.damage, player, "melee")
+			damage_dealt.emit(target, HealthComponent.is_node_dead(target))
+			damaged = true
 		
 		if damaged and _time_manager and _time_manager.has_method("hitstop"):
 			_time_manager.hitstop(melee_data.melee_hitstop)

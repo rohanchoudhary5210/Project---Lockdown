@@ -50,5 +50,21 @@ func reset_health(new_max: float = -1.0) -> void:
 	is_dead = false
 	health_changed.emit(current_health, max_health)
 
+## The node that takes damage for a hit collider: the collider itself or its parent (hitbox case).
+static func find_damageable(collider: Node) -> Node:
+	if collider == null:
+		return null
+	if collider.has_method("take_damage"):
+		return collider
+	var parent := collider.get_parent()
+	if parent and parent.has_method("take_damage"):
+		return parent
+	return null
+
+## True if the node has a HealthComponent that reports it dead.
+static func is_node_dead(node: Node) -> bool:
+	var hc = node.get("health_component") if node else null
+	return hc != null and hc.is_dead
+
 func get_health_ratio() -> float:
 	return current_health / max_health if max_health > 0.0 else 0.0

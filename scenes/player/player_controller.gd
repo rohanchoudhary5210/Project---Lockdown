@@ -106,6 +106,13 @@ func _ready() -> void:
 	var am = get_node_or_null("/root/AudioManager")
 	if am and am.has_method("register_player"):
 		am.register_player(self)
+	
+	# Haptics: light tap on each shot, strong one on a parry (taking damage is in _on_damaged)
+	var pistol = weapon_mount.find_child("Pistol", true, false) if weapon_mount else null
+	if pistol and pistol.has_signal("fired"):
+		pistol.fired.connect(func(_r): _vibrate(15, 0.3))
+	if melee_controller:
+		melee_controller.parry_successful.connect(func(_a): _vibrate(60, 1.0))
 
 func _get_input_manager() -> Node:
 	if not _input_manager and is_inside_tree():
@@ -508,8 +515,14 @@ func heal(amount: float) -> void:
 	if health_component:
 		health_component.heal(amount)
 
+func _vibrate(duration_ms: int, strength: float) -> void:
+	var sm = get_node_or_null("/root/SettingsManager")
+	if sm and sm.has_method("vibrate"):
+		sm.vibrate(duration_ms, strength)
+
 func _on_damaged(_amount: float, _source: Node) -> void:
 	_cancel_hold_interaction()
+	_vibrate(40, 0.6)
 	if camera_feedback:
 		camera_feedback.apply_damage_taken_feedback()
 

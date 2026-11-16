@@ -12,6 +12,7 @@ signal back_pressed()
 @onready var look_slider: HSlider = %LookSlider
 @onready var look_value: Label = %LookValue
 @onready var invert_y_check: CheckButton = %InvertYCheck
+@onready var haptics_check: CheckButton = %HapticsCheck
 @onready var fov_slider: HSlider = %FOVSlider
 @onready var fov_value: Label = %FOVValue
 @onready var crouch_check: CheckButton = %CrouchCheck
@@ -83,6 +84,8 @@ func _connect_signals() -> void:
 		look_slider.drag_ended.connect(_on_slider_drag_ended)
 	if invert_y_check:
 		invert_y_check.toggled.connect(_on_invert_y_toggled)
+	if haptics_check:
+		haptics_check.toggled.connect(_on_haptics_toggled)
 	if fov_slider:
 		fov_slider.value_changed.connect(_on_fov_changed)
 		fov_slider.drag_ended.connect(_on_slider_drag_ended)
@@ -156,6 +159,8 @@ func refresh_values() -> void:
 	
 	if invert_y_check:
 		invert_y_check.button_pressed = sm.invert_y
+	if haptics_check:
+		haptics_check.button_pressed = sm.haptics
 	
 	if fov_slider:
 		fov_slider.min_value = 70.0
@@ -278,6 +283,15 @@ func _on_fov_changed(val: float) -> void:
 	var sm = get_node_or_null("/root/SettingsManager")
 	if sm:
 		sm.set_setting("fov", val, false)
+
+func _on_haptics_toggled(pressed: bool) -> void:
+	if _is_updating:
+		return
+	var sm = get_node_or_null("/root/SettingsManager")
+	if sm:
+		sm.set_setting("haptics", pressed, true)
+		if pressed:
+			sm.vibrate(40, 0.6) # so the player feels what they just turned on
 
 func _on_crouch_toggled(pressed: bool) -> void:
 	if _is_updating:

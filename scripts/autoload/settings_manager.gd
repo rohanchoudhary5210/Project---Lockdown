@@ -12,6 +12,7 @@ var look_speed: float = 3.0
 var invert_y: bool = false
 var fov: float = 78.0
 var crouch_toggle: bool = false
+var haptics: bool = true # phone vibration + gamepad rumble
 var touch_recoil: float = 0.45
 var aim_assist: String = "Off" # "Off", "Low", "High"
 const DEFAULT_TOUCH_SENS_H: float = 0.0025
@@ -58,6 +59,7 @@ func load_settings() -> void:
 		look_speed = _config.get_value("controls", "look_speed", 3.0)
 		invert_y = _config.get_value("controls", "invert_y", false)
 		crouch_toggle = _config.get_value("controls", "crouch_toggle", false)
+		haptics = _config.get_value("controls", "haptics", true)
 		touch_controls_mode = _config.get_value("controls", "touch_controls_mode", 0)
 		touch_recoil = _config.get_value("controls", "touch_recoil", 0.45)
 		aim_assist = _config.get_value("controls", "aim_assist", _get_default_aim_assist())
@@ -85,6 +87,7 @@ func save_settings() -> void:
 	_config.set_value("controls", "look_speed", look_speed)
 	_config.set_value("controls", "invert_y", invert_y)
 	_config.set_value("controls", "crouch_toggle", crouch_toggle)
+	_config.set_value("controls", "haptics", haptics)
 	_config.set_value("controls", "touch_controls_mode", touch_controls_mode)
 	_config.set_value("controls", "touch_recoil", touch_recoil)
 	_config.set_value("controls", "aim_assist", aim_assist)
@@ -117,6 +120,8 @@ func set_setting(key: String, value: Variant, save_to_disk: bool = true) -> void
 			graphics_quality = str(value)
 		"crouch_toggle":
 			crouch_toggle = bool(value)
+		"haptics":
+			haptics = bool(value)
 		"master_volume":
 			master_volume = clampf(float(value), 0.0, 1.0)
 		"show_ai_debug":
@@ -368,3 +373,13 @@ func should_show_touch_controls() -> bool:
 	if touch_controls_mode == 2:
 		return false
 	return DisplayServer.is_touchscreen_available() or OS.has_feature("mobile") or OS.has_feature("touchscreen")
+
+## Short vibration on phones and rumble on gamepads; does nothing when Haptics is off.
+## strength 0..1. The Android export needs the VIBRATE permission (enabled in export_presets.cfg).
+func vibrate(duration_ms: int, strength: float = 0.5) -> void:
+	if not haptics:
+		return
+	if OS.has_feature("mobile"):
+		Input.vibrate_handheld(duration_ms, clampf(strength, 0.0, 1.0))
+	for joy in Input.get_connected_joypads():
+		Input.start_joy_vibration(joy, strength * 0.6, strength, duration_ms / 1000.0)

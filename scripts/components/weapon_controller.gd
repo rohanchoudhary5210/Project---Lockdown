@@ -12,6 +12,7 @@ signal dry_fired()
 signal reload_started(duration: float)
 signal reload_completed()
 signal hit_target(target: Node, hit_position: Vector3, normal: Vector3, damage: float)
+signal damage_dealt(target: Node, killed: bool) # only for things that took damage (not walls)
 
 @export var weapon_data: WeaponData
 @export var impact_effect_scene: PackedScene = preload("res://scenes/weapons/hit_impact.tscn")
@@ -195,18 +196,14 @@ func _perform_hitscan() -> void:
 		# Spawn visual impact spark
 		_spawn_impact(hit_pos, hit_normal)
 		
-		# Apply damage if target has take_damage method (ready for M3 HealthComponent)
-		if hit_collider:
-			var damaged: bool = false
-			if hit_collider.has_method("take_damage"):
-				hit_collider.take_damage(weapon_data.damage)
-				damaged = true
-			elif hit_collider.get_parent() and hit_collider.get_parent().has_method("take_damage"):
-				hit_collider.get_parent().take_damage(weapon_data.damage)
-				damaged = true
-			
+		# Apply damage; the player is passed as the source so the enemy knows where the shot came from
+		var target: Node = HealthComponent.find_damageable(hit_collider)
+		if target:
+			target.take_damage(weapon_data.damage, player_ancestor, "bullet")
+			damage_dealt.emit(target, HealthComponent.is_node_dead(target))
+
 			# Gun hit hitstop (0.03s dip)
-			if damaged and _time_manager and _time_manager.has_method("hitstop"):
+			if _time_manager and _time_manager.has_method("hitstop"):
 				_time_manager.hitstop(weapon_data.hitstop_duration)
 
 func _spawn_impact(pos: Vector3, normal: Vector3) -> void:
