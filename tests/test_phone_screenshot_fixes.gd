@@ -180,8 +180,9 @@ func test_gun_ambient_lighting() -> bool:
 		player.queue_free()
 		return false
 	
-	if env.background_mode != Environment.BG_KEEP:
-		printerr("Viewmodel background_mode is not BG_KEEP!")
+	# BG_KEEP never clears the overlay, which left the muzzle flash stuck on screen
+	if env.background_mode != Environment.BG_CLEAR_COLOR:
+		printerr("Viewmodel must clear every frame (BG_CLEAR_COLOR), got background_mode ", env.background_mode)
 		player.queue_free()
 		return false
 	

@@ -33,10 +33,14 @@ func _ready() -> void:
 	# Dedicated viewmodel Environment providing ambient light matching world ambient
 	# without rendering sky or calculating shadows
 	var env = Environment.new()
-	env.background_mode = Environment.BG_KEEP
+	# Must clear every frame: BG_KEEP never clears this overlay, so a muzzle flash drawn once stayed
+	# on screen. With transparent_bg the clear color is transparent, so the world still shows through.
+	env.background_mode = Environment.BG_CLEAR_COLOR
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = Color(0.3, 0.32, 0.38, 1.0)
-	env.ambient_light_energy = 0.8
+	# Brighter than the world's 0.8 so the player's own gun stays readable in dark rooms;
+	# nearby lights (and the muzzle flash) still brighten it further.
+	env.ambient_light_energy = 2.0
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	environment = env
 	

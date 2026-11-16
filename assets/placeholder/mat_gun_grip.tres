@@ -1,6 +1,6 @@
 [gd_resource type="StandardMaterial3D" format=3 uid="uid://cmat_gun_grip_001"]
 
 [resource]
-albedo_color = Color(0.1, 0.11, 0.12, 1)
+albedo_color = Color(0.2, 0.21, 0.22, 1)
 metallic = 0.1
 roughness = 0.92
